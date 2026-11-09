@@ -6,7 +6,7 @@
 <meta name="color-scheme" content="light">
 <meta name="theme-color" content="#f3f6f7">
 <meta name="description" content="Ma liste de courses personnelle, mes magasins et mes habitudes.">
-<title>Mes courses — V1.4</title>
+<title>Mes courses — V1.4.1</title>
 <style>
 :root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:#182331;background:#f3f6f7;font-synthesis:none}
 *{box-sizing:border-box}
@@ -184,7 +184,7 @@ hr{border:0;border-top:1px solid #e7eeee;margin:18px 0}
 .remaining-empty{background:#e7f6ef;color:#195d49;border-radius:11px;padding:12px;font-weight:700;font-size:14px}
 @media(max-width:640px){.unplanned-form{grid-template-columns:minmax(0,1fr) 105px}.pending-list .item-name{font-size:16px}.session-head{padding:12px}.basket-details>summary{padding:14px 11px}}
 
-/* V1.4 — tickets rapprochés et résumé financier */
+/* V1.4.1 — tickets rapprochés et résumé financier */
 .version-mark{font-size:10px;font-weight:850;margin-left:9px;color:#28796e;vertical-align:middle;background:#e4f4ee;padding:4px 7px;border-radius:7px;white-space:nowrap}
 .receipt-summary{border:1px solid #cfe7db;border-radius:14px;background:#f0faf5;padding:12px;margin:10px 0}
 .receipt-summary b{font-size:20px;color:#13574a}
@@ -217,14 +217,13 @@ hr{border:0;border-top:1px solid #e7eeee;margin:18px 0}
 .receipt-record:first-of-type{border-top:0}
 .receipt-record strong{font-size:14px}
 .receipt-record p{font-size:12px;margin:4px 0;color:#5b7374;line-height:1.5}
-.autosave-meta{font-size:11px;color:#426c64;margin:5px 0 0}
 @media(max-width:640px){.receipt-date-zone{grid-template-columns:1fr}.receipt-line{padding:11px}.version-mark{font-size:10px;margin-left:6px}.receipt-grid{gap:5px}.receipt-stat{padding:8px}}
 </style>
 </head>
 <body>
 <div class="shell">
   <header>
-    <div><div class="eyebrow">Version 1.4</div><h1>Mes courses <span aria-hidden="true">🛒</span></h1><span class="version-mark">v1.4</span><p class="sub">Une liste, cinq enseignes, tes habitudes.</p></div>
+    <div><div class="eyebrow">Version 1.4.1</div><h1>Mes courses <span aria-hidden="true">🛒</span></h1><span class="version-mark">v1.4.1</span><p class="sub">Une liste, cinq enseignes, tes habitudes.</p></div>
     <div class="logo" aria-hidden="true">🧺</div>
   </header>
   <nav aria-label="Navigation principale" id="nav"></nav>
@@ -249,7 +248,7 @@ const RULES=[
   ['Animaux',/croquette|liti[eè]re|p[aâ]t[eé]e chat|p[aâ]t[eé]e chien/i]
 ];
 const emptyState=()=>({products:[],list:[],history:[],session:null,dismissed:{},receipts:[],receiptAliases:{},receiptDraft:null});
-let state;let tab='list';let editing=null;let catalogFilter='';let catalogSort='count';let previewStore='Aldi';let toastTimer=null;let basketOpen=false;let storageReady=true;
+let state;let tab='list';let editing=null;let catalogFilter='';let catalogSort='count';let previewStore='Aldi';let toastTimer=null;let basketOpen=false;
 const $=s=>document.querySelector(s);
 const safe=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase().replace(/\s+/g,' ');
@@ -295,7 +294,7 @@ function migrateCategories(obj){
   return obj;
 }
 function load(){try{const raw=localStorage.getItem(KEY);if(!raw)return emptyState();const obj=JSON.parse(raw);if(!Array.isArray(obj.products)||!Array.isArray(obj.list)||!Array.isArray(obj.history))throw Error('format');return migrateCategories({...emptyState(),...obj})}catch(e){return emptyState()}}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(state));storageReady=true;return true}catch(e){storageReady=false;notify('Enregistrement local indisponible. Exporte une sauvegarde.');return false}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state));return true}catch(e){notify('Enregistrement local indisponible. Exporte une sauvegarde.');return false}}
 function notify(message){const t=$('#toast');t.textContent=message;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),3300)}
 function product(id){return state.products.find(p=>p.id===id)}
 function findProduct(name){return state.products.find(p=>norm(p.name)===norm(name))}
@@ -331,7 +330,7 @@ function renderStore(){
   const other=pending.filter(i=>{const p=product(i.id);return p&&p.stores.length&&!p.stores.includes(s.store)});
   const bought=all.filter(i=>checkedSet.has(i.id));
   return `<div class="card">
-    <div class="session-head"><b>🛍️ ${safe(s.store)} · Session en cours</b><p class="session-meta"><strong>${pending.length} à trouver</strong> · ${bought.length} dans mon panier</p><p class="autosave-meta">${storageReady?'✓ Sauvegarde locale automatique':'⚠ Sauvegarde indisponible'}</p></div>
+    <div class="session-head"><b>🛍️ ${safe(s.store)} · Session en cours</b><p class="session-meta"><strong>${pending.length} à trouver</strong> · ${bought.length} dans mon panier</p></div>
     <details class="unplanned-box" id="extra-details"><summary>Ajouter un achat imprévu</summary>
       <form id="unexpected-form" class="unplanned-form">
         <div><label class="field" for="unexpected-name">Produit acheté</label><input class="field-input" id="unexpected-name" name="name" list="unexpected-known" maxlength="100" placeholder="Ex. mozzarella" required><datalist id="unexpected-known">${state.products.map(p=>`<option value="${safe(p.name)}"></option>`).join('')}</datalist></div>
@@ -501,10 +500,9 @@ function finishReceipt(){
   state.receiptDraft=null;save();render();notify(`Ticket de ${money(d.totalCents)} enregistré sans doublon.`);
 }
 
-function historyDetail(h){const text=(h.items||[]).map(i=>safe(i.name)+(i.quantity?' ('+safe(i.quantity)+')':'')+(i.unexpected?' [imprévu]':'')).join(' · ')||'Aucun achat';if(h.receiptId)return `<details><summary class="micro" style="cursor:pointer;font-weight:700">${h.items.length} produits enregistrés · Voir les articles</summary><p>${text}</p></details>`;return `<p>${text}</p>`}
-function renderHistory(){return `<div class="card"><div class="section-heading"><h2>Historique des courses</h2><span class="pill pill-blue">${state.history.length} session${state.history.length>1?'s':''}</span></div>${state.history.length?state.history.slice().reverse().map(h=>`<div class="history-card"><h3>🛍️ ${safe(h.store)} · ${safe(whenText(h))}${h.receiptId?' · 🧾':''}</h3>${historyDetail(h)}</div>`).join(''):'<div class="empty">Après une première session terminée, les achats apparaîtront ici. C’est cet historique qui permettra d’apprendre tes habitudes.</div>'}</div>
+function renderHistory(){return `<div class="card"><div class="section-heading"><h2>Historique des courses</h2><span class="pill pill-blue">${state.history.length} session${state.history.length>1?'s':''}</span></div>${state.history.length?state.history.slice().reverse().map(h=>`<div class="history-card"><h3>🛍️ ${safe(h.store)} · ${safe(whenText(h))}${h.receiptId?' · 🧾':''}</h3><p>${h.items.map(i=>safe(i.name)+(i.quantity?' ('+safe(i.quantity)+')':'')+(i.unexpected?' [imprévu]':'')).join(' · ')||'Aucun achat'}</p></div>`).join(''):'<div class="empty">Après une première session terminée, les achats apparaîtront ici. C’est cet historique qui permettra d’apprendre tes habitudes.</div>'}</div>
   ${renderReceiptModule()}
-  <details class="card data-settings"><summary>⚙️ Sauvegardes et données · v1.4</summary><div class="data-inner"><p class="small">Tes listes, tickets et rapprochements sont enregistrés uniquement dans ce navigateur. Aucun partage automatique avec ton ordinateur.</p><div class="settings-row"><button class="secondary" data-action="export">⬇ Exporter une sauvegarde</button><button class="secondary" data-action="import">⬆ Importer une sauvegarde</button><button class="destructive" data-action="reset">Effacer mes données</button></div><input id="import-file" type="file" accept="application/json,.json" style="display:none"><div class="hint">Pense à exporter une sauvegarde : elle inclut maintenant les tickets, les dépenses et les correspondances apprises.</div></div></details>`}
+  <details class="card data-settings"><summary>⚙️ Sauvegardes et données · v1.4.1</summary><div class="data-inner"><p class="small">Tes listes, tickets et rapprochements sont enregistrés uniquement dans ce navigateur. Aucun partage automatique avec ton ordinateur.</p><div class="settings-row"><button class="secondary" data-action="export">⬇ Exporter une sauvegarde</button><button class="secondary" data-action="import">⬆ Importer une sauvegarde</button><button class="destructive" data-action="reset">Effacer mes données</button></div><input id="import-file" type="file" accept="application/json,.json" style="display:none"><div class="hint">Pense à exporter une sauvegarde : elle inclut maintenant les tickets, les dépenses et les correspondances apprises. Le nom du fichier est automatiquement unique (date et heure) : rien à renommer.</div></div></details>`}
 function renderModal(){const root=$('#modal-root');if(!editing){root.innerHTML='';return}const p=product(editing);if(!p){editing=null;root.innerHTML='';return}root.innerHTML=`<div class="modal-backdrop" data-action="close-modal-backdrop"><div class="modal" role="dialog" aria-modal="true" aria-label="Modifier un produit"><h2>Modifier : ${safe(p.name)}</h2><form id="edit-form"><label class="field" for="edit-category">Rayon</label><select class="field-input" id="edit-category" name="category">${CATEGORIES.map(c=>`<option value="${safe(c)}" ${c===p.category?'selected':''}>${safe(c)}</option>`).join('')}</select><div style="margin-top:17px"><label class="field">Magasins habituels (0, 1 ou plusieurs)</label><div class="store-grid">${STORES.map(s=>`<label class="store-check"><input type="checkbox" name="store" value="${safe(s)}" ${p.stores.includes(s)?'checked':''}>${safe(s)}</label>`).join('')}</div></div><label class="store-check"><input name="manual" type="checkbox" ${p.storeMode==='manual'?'checked':''}>Conserver ces magasins comme choix manuel (prioritaire sur l'apprentissage)</label><p class="micro">Si décoché, de nouveaux achats pourront compléter automatiquement cette liste de magasins.</p><div class="session-actions"><button type="submit" class="primary">Enregistrer</button><button type="button" class="secondary" data-action="close-modal">Annuler</button></div></form></div></div>`}
 function render(){renderNav();$('#main').innerHTML=tab==='list'?renderList():tab==='store'?renderStore():tab==='catalog'?renderCatalog():renderHistory();renderModal()}
 function startSession(){const selected=$('#store-select')?.value||previewStore;previewStore=selected;state.lastStore=selected;state.session={store:selected,checked:[],extras:[],startedAt:new Date().toISOString()};basketOpen=false;save();render()}
@@ -540,8 +538,34 @@ function finishSession(){
   const n=items.filter(x=>x.unexpected).length;
   notify(`${items.length} achat${items.length>1?'s':''} enregistré${items.length>1?'s':''}${n?' dont '+n+' imprévu'+(n>1?'s':''):''}.`);
 }
-function downloadData(){const data=JSON.stringify({...state,exportedAt:new Date().toISOString()},null,2);const blob=new Blob([data],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='mes-courses-sauvegarde-'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000);notify('Fichier de sauvegarde créé.')}
-async function importData(file){if(!file)return;try{const raw=await file.text();const loaded=JSON.parse(raw);if(!Array.isArray(loaded.products)||!Array.isArray(loaded.list)||!Array.isArray(loaded.history)||loaded.products.length>10000)throw Error('structure');if(!confirm('Remplacer toutes les données actuelles par cette sauvegarde ?'))return;state=migrateCategories({...emptyState(),...loaded});catalogSort=state.catalogSort||'count';previewStore=STORES.includes(state.lastStore)?state.lastStore:STORES[0];save();tab='list';render();notify('Sauvegarde importée.')}catch(e){notify('Impossible de lire ce fichier de sauvegarde.')}}
+function uniqueBackupFilename(at){
+  const pad=n=>String(n).padStart(2,'0');
+  const ms=String(at.getMilliseconds()).padStart(3,'0');
+  const date=[at.getFullYear(),pad(at.getMonth()+1),pad(at.getDate())].join('-');
+  const time=[pad(at.getHours()),pad(at.getMinutes()),pad(at.getSeconds())].join('-');
+  return `mes-courses-sauvegarde_${date}_${time}-${ms}.json`;
+}
+function downloadData(){
+  const at=new Date();
+  const data=JSON.stringify({...state,exportedAt:at.toISOString()},null,2);
+  const blob=new Blob([data],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=uniqueBackupFilename(at);
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),3000);
+  notify('Sauvegarde pr\u00e9par\u00e9e : ' + a.download);
+}
+async function importData(file){if(!file)return;try{const raw=await file.text();const loaded=JSON.parse(raw);if(!Array.isArray(loaded.products)||!Array.isArray(loaded.list)||!Array.isArray(loaded.history)||loaded.products.length>10000)throw Error('structure');if(!confirm('Remplacer toutes les données actuelles par cette sauvegarde ?'))return;state=migrateCategories({...emptyState(),...loaded});if(state.session){
+      const itemIds=new Set([...state.list,...state.session.extras].map(it=>it.id));
+      const productIds=new Set(state.products.map(p=>p.id));
+      if(!STORES.includes(state.session.store)||!Array.isArray(state.session.checked)||!Array.isArray(state.session.extras))state.session=null;
+      else state.session.checked=state.session.checked.filter(id=>itemIds.has(id)&&productIds.has(id));
+    }
+    catalogSort=state.catalogSort||'count';previewStore=STORES.includes(state.lastStore)?state.lastStore:STORES[0];save();tab='list';render();notify('Sauvegarde importée.')}catch(e){notify('Impossible de lire ce fichier de sauvegarde.')}}
 document.addEventListener('submit',e=>{if(e.target.id==='add-form'){e.preventDefault();const name=$('#product-name').value;const qty=$('#quantity').value;if(addItem(name,qty)){render();$('#product-name')?.focus()}}if(e.target.id==='unexpected-form'){e.preventDefault();const name=e.target.elements.name.value;const qty=e.target.elements.quantity.value;if(addUnexpected(name,qty)){render()}}if(e.target.id==='edit-form'){e.preventDefault();const p=product(editing);if(!p)return;const form=e.target;p.category=form.elements.category.value;p.categoryMode='manual';p.stores=Array.from(form.querySelectorAll('input[name="store"]:checked')).map(x=>x.value);p.storeMode=form.elements.manual.checked?'manual':'auto';save();editing=null;render();notify('Produit mis à jour.')}});
 document.addEventListener('click',e=>{const b=e.target.closest('[data-action]');if(!b)return;const action=b.dataset.action;const id=b.dataset.id;if(action==='close-modal-backdrop'&&e.target!==b)return;if(action==='tab'){tab=b.dataset.tab;render();window.scrollTo(0,0)}else if(action==='remove'){const p=product(id);removeItem(id);render();notify((p?.name||'Produit')+' retiré de la liste.')}else if(action==='quickadd'){const p=product(id);if(p){addItem(p.name);render()}}else if(action==='favorite'){const p=product(id);if(p){p.favorite=!p.favorite;save();render()}}else if(action==='edit'){editing=id;renderModal()}else if(action==='close-modal'||action==='close-modal-backdrop'){editing=null;renderModal()}else if(action==='dismiss'){state.dismissed[id]=new Date().toISOString();save();render()}else if(action==='start')startSession();else if(action==='finish')finishSession();else if(action==='cancel'){if(confirm('Annuler définitivement cette session ?\n\nLes produits cochés ET les achats imprévus ajoutés sur place seront abandonnés.\n\nChoisis Annuler pour conserver la session.')){state.session=null;basketOpen=false;save();render()}}else if(action==='receipt-import')$('#receipt-file')?.click();else if(action==='receipt-validate')finishReceipt();else if(action==='receipt-abandon'){if(confirm('Abandonner ce ticket en préparation ? Tes sessions de courses ne seront pas modifiées.')){state.receiptDraft=null;save();render()}}else if(action==='export')downloadData();else if(action==='import')$('#import-file')?.click();else if(action==='reset'){if(confirm('EFFACER toutes les listes, habitudes et l’historique de ce navigateur ? Cette action est irréversible sans sauvegarde.')){state=emptyState();save();tab='list';render();notify('Données réinitialisées.')}}});
 document.addEventListener('click',e=>{if(e.target.closest('#basket-details > summary'))basketOpen=!basketOpen});
