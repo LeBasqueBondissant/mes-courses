@@ -6,7 +6,7 @@
 <meta name="color-scheme" content="light">
 <meta name="theme-color" content="#f3f6f7">
 <meta name="description" content="Ma liste de courses personnelle, mes magasins et mes habitudes.">
-<title>Mes courses — V1.4.1</title>
+<title>Mes courses — V1.4.2</title>
 <style>
 :root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:#182331;background:#f3f6f7;font-synthesis:none}
 *{box-sizing:border-box}
@@ -184,7 +184,7 @@ hr{border:0;border-top:1px solid #e7eeee;margin:18px 0}
 .remaining-empty{background:#e7f6ef;color:#195d49;border-radius:11px;padding:12px;font-weight:700;font-size:14px}
 @media(max-width:640px){.unplanned-form{grid-template-columns:minmax(0,1fr) 105px}.pending-list .item-name{font-size:16px}.session-head{padding:12px}.basket-details>summary{padding:14px 11px}}
 
-/* V1.4.1 — tickets rapprochés et résumé financier */
+/* V1.4.2 — tickets rapprochés et résumé financier */
 .version-mark{font-size:10px;font-weight:850;margin-left:9px;color:#28796e;vertical-align:middle;background:#e4f4ee;padding:4px 7px;border-radius:7px;white-space:nowrap}
 .receipt-summary{border:1px solid #cfe7db;border-radius:14px;background:#f0faf5;padding:12px;margin:10px 0}
 .receipt-summary b{font-size:20px;color:#13574a}
@@ -218,12 +218,35 @@ hr{border:0;border-top:1px solid #e7eeee;margin:18px 0}
 .receipt-record strong{font-size:14px}
 .receipt-record p{font-size:12px;margin:4px 0;color:#5b7374;line-height:1.5}
 @media(max-width:640px){.receipt-date-zone{grid-template-columns:1fr}.receipt-line{padding:11px}.version-mark{font-size:10px;margin-left:6px}.receipt-grid{gap:5px}.receipt-stat{padding:8px}}
+
+/* V1.4.2 — historique compact, corrections réversibles et sans double comptage */
+.history-entry{margin:10px 0 0;border:1px solid #deebe8;border-radius:14px;overflow:hidden;background:#fff}
+.history-entry>summary{list-style:none;cursor:pointer;padding:14px 12px;display:flex;align-items:center;gap:10px;justify-content:space-between}
+.history-entry>summary::-webkit-details-marker{display:none}
+.history-title{font-size:14px;font-weight:800;color:#183d3a}
+.history-detail{border-top:1px solid #e4eeee;padding:6px 12px 12px}
+.history-meta{font-size:12px;color:#5e7579;margin-top:4px;line-height:1.45}
+.history-row{display:flex;gap:8px;justify-content:space-between;align-items:start;border-top:1px solid #edf1f1;padding:10px 0}
+.history-row:first-child{border-top:0}
+.history-row .item-name{font-size:13px}
+.history-row .micro{font-size:11px}
+.history-row b{white-space:nowrap;font-size:13px;color:#194b44}
+.history-arrow{font-size:12px;font-weight:750;color:#4b7770;white-space:nowrap}
+.session-reconcile{border-left:3px solid #e2a744;background:#fffaed;padding:10px 11px;border-radius:8px;font-size:12px;line-height:1.45;margin:8px 0}
+.match-suggestions{display:flex;align-items:center;flex-wrap:wrap;gap:5px;margin-top:7px}
+.match-suggestions .chip{padding:5px 8px;font-size:11px;min-height:30px}
+.receipt-editor{border:1px solid #a8d5cc;box-shadow:0 4px 18px #14574718}
+.receipt-edit-help{background:#ecf7f3;padding:11px 12px;border-radius:11px;color:#205b52;font-size:12px;line-height:1.5}
+.receipt-edit-stats{display:flex;flex-wrap:wrap;gap:7px;margin:11px 0}
+.receipt-edit-stats .pill{font-size:12px}
+.receipt-actions.sticky-actions{position:sticky;bottom:calc(78px + env(safe-area-inset-bottom,0px));background:#fff;padding:9px 0 7px;border-top:1px solid #e8eeee;z-index:2}
+@media(max-width:640px){.history-entry>summary{padding:13px 10px}.history-detail{padding:7px 10px 12px}.receipt-actions.sticky-actions{bottom:calc(74px + env(safe-area-inset-bottom,0px))}}
 </style>
 </head>
 <body>
 <div class="shell">
   <header>
-    <div><div class="eyebrow">Version 1.4.1</div><h1>Mes courses <span aria-hidden="true">🛒</span></h1><span class="version-mark">v1.4.1</span><p class="sub">Une liste, cinq enseignes, tes habitudes.</p></div>
+    <div><div class="eyebrow">Version 1.4.2</div><h1>Mes courses <span aria-hidden="true">🛒</span></h1><span class="version-mark">v1.4.2</span><p class="sub">Une liste, cinq enseignes, tes habitudes.</p></div>
     <div class="logo" aria-hidden="true">🧺</div>
   </header>
   <nav aria-label="Navigation principale" id="nav"></nav>
@@ -247,7 +270,7 @@ const RULES=[
   ['Maison et entretien',/lessive|adoucissant|liquide vaisselle|pastille lave|nettoyant|eponge|[eé]ponge|sac poubelle|essuie.tout|papier alu|film alimentaire|serpilli[eè]re/i],
   ['Animaux',/croquette|liti[eè]re|p[aâ]t[eé]e chat|p[aâ]t[eé]e chien/i]
 ];
-const emptyState=()=>({products:[],list:[],history:[],session:null,dismissed:{},receipts:[],receiptAliases:{},receiptDraft:null});
+const emptyState=()=>({products:[],list:[],history:[],session:null,dismissed:{},receipts:[],receiptAliases:{},receiptDraft:null,receiptEdit:null});
 let state;let tab='list';let editing=null;let catalogFilter='';let catalogSort='count';let previewStore='Aldi';let toastTimer=null;let basketOpen=false;
 const $=s=>document.querySelector(s);
 const safe=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -285,6 +308,7 @@ function migrateCategories(obj){
   if(!Array.isArray(obj.receipts))obj.receipts=[];
   if(!obj.receiptAliases||typeof obj.receiptAliases!=='object'||Array.isArray(obj.receiptAliases))obj.receiptAliases={};
   if(!obj.receiptDraft||!Array.isArray(obj.receiptDraft.lines))obj.receiptDraft=null;
+  if(!obj.receiptEdit||!Array.isArray(obj.receiptEdit.lines))obj.receiptEdit=null;
   if(obj.session){
     if(!Array.isArray(obj.session.checked))obj.session.checked=[];
     if(!Array.isArray(obj.session.extras))obj.session.extras=[];
@@ -384,6 +408,124 @@ function catalogRows(items){
   }).join('');
 }
 
+function receiptForHistory(h){return (state.receipts||[]).find(r=>r.sessionId===h.id)||null}
+function ensureReceiptBase(r){
+  if(Array.isArray(r.baseItems))return r.baseItems;
+  const h=state.history.find(s=>s.id===r.sessionId);
+  // Historical V1.4.1 added products carry viaReceipt=true. The original
+  // manually checked items do not: recover them without mutating the session.
+  r.baseItems=(h?.items||[]).filter(it=>!it.viaReceipt).map(it=>({...it}));
+  return r.baseItems;
+}
+function rebuildReceiptAliases(){
+  const aliases={};
+  for(const r of state.receipts){
+    for(const l of r.lines){
+      if(l.productId&&product(l.productId))aliases[`${r.store}|${norm(l.rawName)}`]=l.productId;
+    }
+  }
+  state.receiptAliases=aliases;
+}
+function reconcileReceiptLines(r,editedLines){
+  const h=state.history.find(s=>s.id===r.sessionId);
+  if(!h)throw Error('Session introuvable : aucune donnée modifiée.');
+  const base=ensureReceiptBase(r);
+  const baseIds=new Set(base.map(it=>it.id));
+  const mapped=new Map();
+  const newLines=[];
+  for(const line of editedLines){
+    const clean=String(line.matchName||'').trim().slice(0,100);
+    const p=clean?getOrCreate(clean):null;
+    if(p){
+      if(p.storeMode!=='manual'&&!p.stores.includes(r.store))p.stores.push(r.store);
+      if(!mapped.has(p.id))mapped.set(p.id,p);
+    }
+    newLines.push({...line,matchName:clean,productId:p?.id||null});
+  }
+  const newItems=[...mapped.values()].filter(p=>!baseIds.has(p.id)).map(p=>({
+    id:p.id,name:p.name,quantity:'',unexpected:false,viaReceipt:true
+  }));
+  h.items=[...base.map(it=>({...it})),...newItems];
+  h.receiptId=r.id;
+  r.lines=newLines;
+  r.reconciliation={
+    matched:[...mapped.keys()].filter(id=>baseIds.has(id)).length,
+    newFromTicket:newItems.length,
+    notOnReceipt:base.filter(it=>!mapped.has(it.id)).map(it=>({id:it.id,name:product(it.id)?.name||it.name}))
+  };
+  rebuildReceiptAliases();
+  return {matched:r.reconciliation.matched,complementary:newItems.length,notOnReceipt:r.reconciliation.notOnReceipt.length};
+}
+function startReceiptCorrection(id){
+  const r=state.receipts.find(r=>r.id===id);if(!r)return;
+  ensureReceiptBase(r);
+  if(state.receiptEdit&&state.receiptEdit.id!==id&&!confirm('Un autre ticket est en cours de correction. Abandonner ce brouillon ?'))return;
+  state.receiptEdit={id,lines:r.lines.map(l=>({...l,matchName:product(l.productId)?.name||l.matchName||''}))};
+  tab='history';save();render();
+  requestAnimationFrame(()=>document.getElementById('receipt-editor')?.scrollIntoView({behavior:'smooth',block:'start'}));
+}
+function refreshReceiptEditStats(){
+  const d=state.receiptEdit;
+  const r=d&&state.receipts.find(x=>x.id===d.id);
+  const el=document.getElementById('receipt-edit-count');
+  if(!d||!r||!el)return;
+  const n=d.lines.filter((l,i)=>norm(l.matchName)!==norm(product(r.lines[i].productId)?.name||r.lines[i].matchName||'')).length;
+  el.textContent=n+' correction'+(n>1?'s':'')+' en attente';
+}
+function finishReceiptCorrection(){
+  const d=state.receiptEdit;if(!d)return;
+  const r=state.receipts.find(x=>x.id===d.id);if(!r){notify('Ticket introuvable.');return}
+  if(d.lines.length!==r.lines.length){notify('Nombre de lignes incohérent.');return}
+  const changed=d.lines.filter((l,i)=>norm(l.matchName)!==norm(product(r.lines[i].productId)?.name||r.lines[i].matchName||'')).length;
+  if(!confirm(`Enregistrer ${changed} correction${changed>1?'s':''} ? Les achats de cette session et leurs statistiques seront recalculés sans créer de nouvelle session. Les prix resteront inchangés.`))return;
+  try{
+    const result=reconcileReceiptLines(r,d.lines);
+    state.receiptEdit=null;save();render();
+    notify(`Correspondances enregistrées · ${result.matched} achat(s) déjà cochés rapprochés.`);
+  }catch(e){notify(e.message||'Correction impossible, aucune donnée modifiée.')}
+}
+function receiptCheckedSuggestions(r,line){
+  const src=ensureReceiptBase(r).map(it=>product(it.id)).filter(Boolean);
+  const stem=t=>t.endsWith('s')&&t.length>3?t.slice(0,-1):t;
+  const words=t=>norm(t).split(/[^a-z0-9]+/).filter(x=>x.length>2&&!['des','les','avec','aux','pour','bio','une','sur'].includes(x)).map(stem);
+  const phrase=words(line.matchName).join(' ');
+  return src.map(p=>{
+    const candidate=words(p.name).join(' ');
+    // An exact or whole-word prefix is safe to PROPOSE. Overlapping generic
+    // ingredients alone (e.g. "chocolat noir") are too ambiguous.
+    const plausible=phrase&&candidate&&(phrase===candidate||phrase.startsWith(candidate+' ')||candidate.startsWith(phrase+' '));
+    return {p,score:plausible?candidate.length:0};
+  }).filter(o=>o.score>0&&norm(o.p.name)!==norm(line.matchName))
+    .sort((a,b)=>b.score-a.score).slice(0,2).map(o=>o.p);
+}
+function renderReceiptEditor(){
+  const d=state.receiptEdit;if(!d)return '';
+  const r=state.receipts.find(x=>x.id===d.id);if(!r)return '';
+  const base=ensureReceiptBase(r);
+  const changes=d.lines.filter((l,i)=>norm(l.matchName)!==norm(product(r.lines[i].productId)?.name||r.lines[i].matchName||'')).length;
+  return `<div class="card receipt-editor" id="receipt-editor">
+    <div class="section-heading"><h2>✏️ Corriger le ticket enregistré</h2><span class="pill pill-green">Sans réimporter</span></div>
+    <div class="receipt-summary"><div style="display:flex;align-items:center;justify-content:space-between;gap:9px"><strong>${safe(r.store)} · ${r.dateUnknown?'Date inconnue':safe(dateStr(r.at))}</strong><b>${money(r.totalCents)}</b></div><p class="note">${r.lines.length} lignes · ${base.length} produits initialement cochés</p></div>
+    <div class="receipt-edit-help">Remplace le nom d'une référence par <strong>celui de ta liste de courses</strong> (ex. « Oignons jaunes » → « Oignons »). Plusieurs lignes peuvent pointer vers un même produit. Les prix et les références exactes sont conservés. <strong>Les changements n'affectent l'historique qu'après validation.</strong></div>
+    <div class="receipt-edit-stats"><span class="pill pill-blue">${changes} correction${changes>1?'s':''} en attente</span><span class="pill">${base.length} achats cochés avant import</span></div>
+    ${d.lines.some(l=>receiptCheckedSuggestions(r,l).length)?`<div class="note-box" style="margin:10px 0 13px"><strong>🔎 Correspondances possibles avec ta liste cochée</strong><p class="micro">Un clic sur une proposition prépare la correction. Rien n'est modifié dans l'historique avant ton accord.</p>
+      ${d.lines.map((l,i)=>({l,i,choices:receiptCheckedSuggestions(r,l)})).filter(x=>x.choices.length).map(x=>`<div style="padding:9px 0;border-top:1px solid #e2ecea"><div style="font-size:12px;font-weight:700">${safe(x.l.matchName)} <span class="micro">(${money(x.l.amountCents)})</span></div><div class="match-suggestions">${x.choices.map(p=>`<button type="button" class="chip" data-action="receipt-edit-suggest" data-index="${x.i}" data-name="${safe(p.name)}">↳ ${safe(p.name)}</button>`).join('')}</div></div>`).join('')}
+    </div>`:''}
+    ${base.length?`<details style="margin:12px 0"><summary class="micro" style="cursor:pointer;font-weight:750">Voir mes ${base.length} produits cochés (référence pour le rapprochement)</summary><div class="chips" style="margin-top:9px">${base.map(i=>`<span class="pill">${safe(product(i.id)?.name||i.name)}</span>`).join('')}</div></details>`:''}
+    <datalist id="receipt-edit-known">${state.products.map(p=>`<option value="${safe(p.name)}"></option>`).join('')}</datalist>
+    <details class="receipt-rows"><summary>✏️ Voir et modifier les ${d.lines.length} lignes du ticket</summary>
+    ${d.lines.map((line,i)=>`<div class="receipt-line"><div class="receipt-line-header"><strong>${line.line}. ${safe(line.rawName)}</strong><b>${money(line.amountCents)}</b></div>
+      <small>${safe(line.quantity||'Quantité non précisée')}</small>
+      <label class="field" for="edit-match-${i}">Nom retenu dans mon catalogue</label>
+      <input id="edit-match-${i}" class="field-input" data-edit-index="${i}" list="receipt-edit-known" maxlength="100" value="${safe(line.matchName)}" placeholder="Vide = dépenses uniquement">
+      ${receiptCheckedSuggestions(r,line).length?`<div class="match-suggestions"><span class="micro">Peut-être :</span>${receiptCheckedSuggestions(r,line).map(p=>`<button type="button" class="chip" data-action="receipt-edit-suggest" data-index="${i}" data-name="${safe(p.name)}">${safe(p.name)}</button>`).join('')}</div>`:''}
+    </div>`).join('')}
+    </details>
+    <div class="receipt-actions sticky-actions"><button class="primary" data-action="receipt-edit-save">✓ Enregistrer les corrections</button><button class="secondary" data-action="receipt-edit-cancel">Abandonner</button></div>
+    <p class="note">Sauvegarde automatique du brouillon sur ce téléphone. Tu peux quitter cet écran et y revenir avant validation.</p>
+  </div>`;
+}
+
 function receiptSuggestions(d){
   for(const line of d.lines){
     const aliasId=state.receiptAliases[`${d.store}|${norm(line.rawName)}`];
@@ -458,6 +600,7 @@ function renderReceiptModule(){
     <input id="receipt-file" type="file" accept="application/json,.json" style="display:none">
     ${!all.length?'<p class="note">Aucune dépense enregistrée pour l’instant.</p>':''}
     ${all.slice().reverse().map(r=>`<div class="receipt-record"><div style="display:flex;justify-content:space-between;gap:10px"><strong>${safe(r.store)} · ${r.dateUnknown?'Date inconnue':safe(dateStr(r.at))}</strong><strong>${money(r.totalCents)}</strong></div><p>${r.lines.length} lignes · ${r.articleCount||'?'} articles${r.sessionId?' · Rapproché avec une session':''} · Prix détaillés conservés</p>
+      <button type="button" class="ghost" style="margin:8px 0" data-action="receipt-edit-open" data-id="${safe(r.id)}">✏️ Corriger les correspondances</button>
       ${r.reconciliation?.notOnReceipt?.length?`<div class="receipt-alert">⚠ Cochés mais non retrouvés sur le ticket : ${r.reconciliation.notOnReceipt.map(x=>safe(x.name)).join(', ')}. Aucun achat coché n’a été supprimé automatiquement.</div>`:''}
       <details><summary class="micro" style="cursor:pointer;font-weight:700">Voir dépenses par rayon et lignes</summary><div class="receipt-ledger">${receiptBreakdown(r)}</div><div style="margin-top:12px">${r.lines.map(l=>`<div class="receipt-line-header" style="padding:5px 0;border-top:1px solid #edf1f1"><span class="micro">${safe(l.rawName)}<br><strong>↳ ${l.productId?safe(product(l.productId)?.name||l.matchName||'Produit'):'Non rapproché'}</strong></span><b>${money(l.amountCents)}</b></div>`).join('')}</div></details></div>`).join('')}
   </div>${renderReceiptDraft()}`;
@@ -470,39 +613,45 @@ function finishReceipt(){
   if(target&&target.receiptId){notify('Cette session a déjà un ticket associé.');return}
   const hasDate=/^\d{4}-\d{2}-\d{2}$/.test(d.purchaseDate);
   if(!target&&!hasDate&&!confirm('La date du ticket n’est pas connue. Créer une session sans date ? Les achats seront comptés, mais pas utilisés pour calculer les intervalles entre achats.'))return;
-  if(!confirm(`Valider ${d.lines.length} lignes pour ${money(d.totalCents)} ? Les correspondances seront enregistrées dans le catalogue et les dépenses.`))return;
-  const lines=d.lines.map(l=>({...l,matchName:l.matchName.trim().slice(0,100)}));
-  const initialIds=new Set((target?.items||[]).map(it=>it.id));
-  const unique=new Map();
-  const receiptItems=[];
-  for(const l of lines){
-    const p=l.matchName?getOrCreate(l.matchName):null;
-    if(p){
-      if(p.storeMode!=='manual'&&!p.stores.includes(d.store))p.stores.push(d.store);
-      state.receiptAliases[`${d.store}|${norm(l.rawName)}`]=p.id;
-      if(!unique.has(p.id))unique.set(p.id,{id:p.id,name:p.name,quantity:'',unexpected:!!target,viaReceipt:true});
-    }
-    receiptItems.push({line:l.line,rawName:l.rawName,quantity:l.quantity,units:l.units,amountCents:l.amountCents,productId:p?.id||null,matchName:l.matchName,confidence:l.confidence});
+  if(!confirm(`Valider ${d.lines.length} lignes pour ${money(d.totalCents)} ? Tu pourras corriger les correspondances ensuite, sans réimporter le ticket.`))return;
+  let h=target;
+  if(!h){
+    h={id:uid(),at:hasDate?new Date(d.purchaseDate+'T12:00:00').toISOString():null,store:d.store,dateUnknown:!hasDate,items:[]};
+    state.history.push(h);
   }
-  const newIds=[...unique.keys()].filter(id=>!initialIds.has(id));
-  const notOnReceipt=[...(target?.items||[])].filter(it=>!unique.has(it.id)).map(it=>({id:it.id,name:it.name}));
-  const reconciliation={matched:[...unique.keys()].filter(id=>initialIds.has(id)).length,newFromTicket:newIds.length,notOnReceipt};
-  let sessionId;
-  if(target){
-    sessionId=target.id;target.receiptId=d.id;
-    for(const id of newIds){const i=unique.get(id);target.items.push({...i,unexpected:true})}
-  }else{
-    sessionId=uid();
-    const at=hasDate?new Date(d.purchaseDate+'T12:00:00').toISOString():null;
-    state.history.push({id:sessionId,at,store:d.store,dateUnknown:!hasDate,receiptId:d.id,items:[...unique.values()].map(i=>({...i,unexpected:false}))});
-  }
-  state.receipts.push({id:d.id,store:d.store,storeDetails:d.storeDetails,at:target?.at||(hasDate?new Date(d.purchaseDate+'T12:00:00').toISOString():null),dateUnknown:target?!!target.dateUnknown:!hasDate,totalCents:d.totalCents,articleCount:d.articleCount,lines:receiptItems,sessionId,reconciliation});
-  state.receiptDraft=null;save();render();notify(`Ticket de ${money(d.totalCents)} enregistré sans doublon.`);
+  const r={id:d.id,store:d.store,storeDetails:d.storeDetails,at:h.at,dateUnknown:!!h.dateUnknown,
+    totalCents:d.totalCents,articleCount:d.articleCount,lines:[],sessionId:h.id,
+    baseItems:h.items.map(it=>({...it})),reconciliation:{matched:0,newFromTicket:0,notOnReceipt:[]}};
+  state.receipts.push(r);
+  reconcileReceiptLines(r,d.lines);
+  state.receiptDraft=null;save();render();notify(`Ticket de ${money(d.totalCents)} enregistré. Correspondances modifiables.`);
 }
+function renderHistoryRow(it,priceMap,receipt){
+  const p=product(it.id);
+  const price=priceMap.get(it.id);
+  const label=p?.name||it.name;
+  const q=it.quantity?` <span class="pill">${safe(it.quantity)}</span>`:'';
+  const subtitle=receipt?(price?`${price.lines} ligne${price.lines>1?'s':''} de ticket`:'Coché pendant les courses · non identifié sur le ticket'):(it.quantity?'Quantité renseignée':'Achat enregistré');
+  return `<div class="history-row"><div class="item-body"><div class="item-name">${safe(label)}${q}</div><div class="micro">${safe(subtitle)}</div></div>${price?`<b>${money(price.cents)}</b>`:''}</div>`;
+}
+function renderHistoryEntry(h){
+  const r=receiptForHistory(h);
+  const priceMap=new Map();
+  if(r)for(const l of r.lines||[]){if(!l.productId)continue;const p=priceMap.get(l.productId)||{cents:0,lines:0};p.cents+=l.amountCents;p.lines++;priceMap.set(l.productId,p)}
+  const items=[...new Map((h.items||[]).map(it=>[it.id,it])).values()];
+  const missing=r?items.filter(it=>!priceMap.has(it.id)).length:0;
+  const attached=r?` · 🧾 ${money(r.totalCents)}`:'';
+  return `<details class="history-entry"><summary><div><div class="history-title">🛍️ ${safe(h.store)} · ${safe(whenText(h))}</div><div class="history-meta">${items.length} produit${items.length>1?'s':''} enregistré${items.length>1?'s':''}${attached}</div></div><span class="history-arrow">Voir ▾</span></summary>
+    <div class="history-detail">${r?`<p class="micro">Regroupé par produit de ton catalogue. Les références exactes et leurs prix restent disponibles dans « Tickets et dépenses ».</p>`:''}
+      ${missing?`<div class="session-reconcile">${missing} produit${missing>1?'s':''} coché${missing>1?'s':''} non relié${missing>1?'s':''} au ticket. Tu peux corriger les correspondances ci-dessous ; aucun achat coché n'est supprimé automatiquement.</div>`:''}
+      ${items.map(it=>renderHistoryRow(it,priceMap,r)).join('')||'<div class="empty">Aucun produit</div>'}
+    </div></details>`;
+}
+function renderHistory(){return `<div class="card"><div class="section-heading"><h2>Historique des courses</h2><span class="pill pill-blue">${state.history.length} session${state.history.length>1?'s':''}</span></div>
+  ${state.history.length?state.history.slice().reverse().map(renderHistoryEntry).join(''):'<div class="empty">Après une première session terminée, les achats apparaîtront ici.</div>'}
+  </div>${renderReceiptModule()}${renderReceiptEditor()}
+  <details class="card data-settings"><summary>⚙️ Sauvegardes et données · v1.4.2</summary><div class="data-inner"><p class="small">Tes listes, tickets et rapprochements sont enregistrés uniquement dans ce navigateur. Aucun partage automatique avec ton ordinateur.</p><div class="settings-row"><button class="secondary" data-action="export">⬇ Exporter une sauvegarde</button><button class="secondary" data-action="import">⬆ Importer une sauvegarde</button><button class="destructive" data-action="reset">Effacer mes données</button></div><input id="import-file" type="file" accept="application/json,.json" style="display:none"><div class="hint">La sauvegarde inclut les tickets, leurs corrections, les achats cochés et les correspondances apprises. Chaque export a un nom unique.</div></div></details>`}
 
-function renderHistory(){return `<div class="card"><div class="section-heading"><h2>Historique des courses</h2><span class="pill pill-blue">${state.history.length} session${state.history.length>1?'s':''}</span></div>${state.history.length?state.history.slice().reverse().map(h=>`<div class="history-card"><h3>🛍️ ${safe(h.store)} · ${safe(whenText(h))}${h.receiptId?' · 🧾':''}</h3><p>${h.items.map(i=>safe(i.name)+(i.quantity?' ('+safe(i.quantity)+')':'')+(i.unexpected?' [imprévu]':'')).join(' · ')||'Aucun achat'}</p></div>`).join(''):'<div class="empty">Après une première session terminée, les achats apparaîtront ici. C’est cet historique qui permettra d’apprendre tes habitudes.</div>'}</div>
-  ${renderReceiptModule()}
-  <details class="card data-settings"><summary>⚙️ Sauvegardes et données · v1.4.1</summary><div class="data-inner"><p class="small">Tes listes, tickets et rapprochements sont enregistrés uniquement dans ce navigateur. Aucun partage automatique avec ton ordinateur.</p><div class="settings-row"><button class="secondary" data-action="export">⬇ Exporter une sauvegarde</button><button class="secondary" data-action="import">⬆ Importer une sauvegarde</button><button class="destructive" data-action="reset">Effacer mes données</button></div><input id="import-file" type="file" accept="application/json,.json" style="display:none"><div class="hint">Pense à exporter une sauvegarde : elle inclut maintenant les tickets, les dépenses et les correspondances apprises. Le nom du fichier est automatiquement unique (date et heure) : rien à renommer.</div></div></details>`}
 function renderModal(){const root=$('#modal-root');if(!editing){root.innerHTML='';return}const p=product(editing);if(!p){editing=null;root.innerHTML='';return}root.innerHTML=`<div class="modal-backdrop" data-action="close-modal-backdrop"><div class="modal" role="dialog" aria-modal="true" aria-label="Modifier un produit"><h2>Modifier : ${safe(p.name)}</h2><form id="edit-form"><label class="field" for="edit-category">Rayon</label><select class="field-input" id="edit-category" name="category">${CATEGORIES.map(c=>`<option value="${safe(c)}" ${c===p.category?'selected':''}>${safe(c)}</option>`).join('')}</select><div style="margin-top:17px"><label class="field">Magasins habituels (0, 1 ou plusieurs)</label><div class="store-grid">${STORES.map(s=>`<label class="store-check"><input type="checkbox" name="store" value="${safe(s)}" ${p.stores.includes(s)?'checked':''}>${safe(s)}</label>`).join('')}</div></div><label class="store-check"><input name="manual" type="checkbox" ${p.storeMode==='manual'?'checked':''}>Conserver ces magasins comme choix manuel (prioritaire sur l'apprentissage)</label><p class="micro">Si décoché, de nouveaux achats pourront compléter automatiquement cette liste de magasins.</p><div class="session-actions"><button type="submit" class="primary">Enregistrer</button><button type="button" class="secondary" data-action="close-modal">Annuler</button></div></form></div></div>`}
 function render(){renderNav();$('#main').innerHTML=tab==='list'?renderList():tab==='store'?renderStore():tab==='catalog'?renderCatalog():renderHistory();renderModal()}
 function startSession(){const selected=$('#store-select')?.value||previewStore;previewStore=selected;state.lastStore=selected;state.session={store:selected,checked:[],extras:[],startedAt:new Date().toISOString()};basketOpen=false;save();render()}
@@ -567,10 +716,10 @@ async function importData(file){if(!file)return;try{const raw=await file.text();
     }
     catalogSort=state.catalogSort||'count';previewStore=STORES.includes(state.lastStore)?state.lastStore:STORES[0];save();tab='list';render();notify('Sauvegarde importée.')}catch(e){notify('Impossible de lire ce fichier de sauvegarde.')}}
 document.addEventListener('submit',e=>{if(e.target.id==='add-form'){e.preventDefault();const name=$('#product-name').value;const qty=$('#quantity').value;if(addItem(name,qty)){render();$('#product-name')?.focus()}}if(e.target.id==='unexpected-form'){e.preventDefault();const name=e.target.elements.name.value;const qty=e.target.elements.quantity.value;if(addUnexpected(name,qty)){render()}}if(e.target.id==='edit-form'){e.preventDefault();const p=product(editing);if(!p)return;const form=e.target;p.category=form.elements.category.value;p.categoryMode='manual';p.stores=Array.from(form.querySelectorAll('input[name="store"]:checked')).map(x=>x.value);p.storeMode=form.elements.manual.checked?'manual':'auto';save();editing=null;render();notify('Produit mis à jour.')}});
-document.addEventListener('click',e=>{const b=e.target.closest('[data-action]');if(!b)return;const action=b.dataset.action;const id=b.dataset.id;if(action==='close-modal-backdrop'&&e.target!==b)return;if(action==='tab'){tab=b.dataset.tab;render();window.scrollTo(0,0)}else if(action==='remove'){const p=product(id);removeItem(id);render();notify((p?.name||'Produit')+' retiré de la liste.')}else if(action==='quickadd'){const p=product(id);if(p){addItem(p.name);render()}}else if(action==='favorite'){const p=product(id);if(p){p.favorite=!p.favorite;save();render()}}else if(action==='edit'){editing=id;renderModal()}else if(action==='close-modal'||action==='close-modal-backdrop'){editing=null;renderModal()}else if(action==='dismiss'){state.dismissed[id]=new Date().toISOString();save();render()}else if(action==='start')startSession();else if(action==='finish')finishSession();else if(action==='cancel'){if(confirm('Annuler définitivement cette session ?\n\nLes produits cochés ET les achats imprévus ajoutés sur place seront abandonnés.\n\nChoisis Annuler pour conserver la session.')){state.session=null;basketOpen=false;save();render()}}else if(action==='receipt-import')$('#receipt-file')?.click();else if(action==='receipt-validate')finishReceipt();else if(action==='receipt-abandon'){if(confirm('Abandonner ce ticket en préparation ? Tes sessions de courses ne seront pas modifiées.')){state.receiptDraft=null;save();render()}}else if(action==='export')downloadData();else if(action==='import')$('#import-file')?.click();else if(action==='reset'){if(confirm('EFFACER toutes les listes, habitudes et l’historique de ce navigateur ? Cette action est irréversible sans sauvegarde.')){state=emptyState();save();tab='list';render();notify('Données réinitialisées.')}}});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-action]');if(!b)return;const action=b.dataset.action;const id=b.dataset.id;if(action==='close-modal-backdrop'&&e.target!==b)return;if(action==='tab'){tab=b.dataset.tab;render();window.scrollTo(0,0)}else if(action==='remove'){const p=product(id);removeItem(id);render();notify((p?.name||'Produit')+' retiré de la liste.')}else if(action==='quickadd'){const p=product(id);if(p){addItem(p.name);render()}}else if(action==='favorite'){const p=product(id);if(p){p.favorite=!p.favorite;save();render()}}else if(action==='edit'){editing=id;renderModal()}else if(action==='close-modal'||action==='close-modal-backdrop'){editing=null;renderModal()}else if(action==='dismiss'){state.dismissed[id]=new Date().toISOString();save();render()}else if(action==='start')startSession();else if(action==='finish')finishSession();else if(action==='cancel'){if(confirm('Annuler définitivement cette session ?\n\nLes produits cochés ET les achats imprévus ajoutés sur place seront abandonnés.\n\nChoisis Annuler pour conserver la session.')){state.session=null;basketOpen=false;save();render()}}else if(action==='receipt-edit-open')startReceiptCorrection(id);else if(action==='receipt-edit-suggest'){const i=Number(b.dataset.index);const line=state.receiptEdit?.lines[i];if(line){line.matchName=b.dataset.name;const input=document.getElementById('edit-match-'+i);if(input)input.value=line.matchName;b.textContent='✓ '+line.matchName;refreshReceiptEditStats();save();notify('Correspondance proposée. Valide en bas pour l’enregistrer.')}}else if(action==='receipt-edit-save')finishReceiptCorrection();else if(action==='receipt-edit-cancel'){if(confirm('Abandonner les modifications en cours ? Le ticket enregistré restera inchangé.')){state.receiptEdit=null;save();render()}}else if(action==='receipt-import')$('#receipt-file')?.click();else if(action==='receipt-validate')finishReceipt();else if(action==='receipt-abandon'){if(confirm('Abandonner ce ticket en préparation ? Tes sessions de courses ne seront pas modifiées.')){state.receiptDraft=null;save();render()}}else if(action==='export')downloadData();else if(action==='import')$('#import-file')?.click();else if(action==='reset'){if(confirm('EFFACER toutes les listes, habitudes et l’historique de ce navigateur ? Cette action est irréversible sans sauvegarde.')){state=emptyState();save();tab='list';render();notify('Données réinitialisées.')}}});
 document.addEventListener('click',e=>{if(e.target.closest('#basket-details > summary'))basketOpen=!basketOpen});
 document.addEventListener('change',e=>{if(e.target.dataset.action==='check'){const id=e.target.dataset.id;const arr=state.session?.checked;if(!arr)return;if(e.target.checked&&!arr.includes(id))arr.push(id);if(!e.target.checked)state.session.checked=arr.filter(x=>x!==id);save();render()}if(e.target.id==='import-file'){importData(e.target.files?.[0]);e.target.value=''}if(e.target.id==='receipt-file'){importReceipt(e.target.files?.[0]);e.target.value=''}if(e.target.id==='receipt-session-target'&&state.receiptDraft){state.receiptDraft.attachId=e.target.value;save();render()}if(e.target.id==='receipt-date'&&state.receiptDraft){state.receiptDraft.purchaseDate=e.target.value;save()}if(e.target.id==='catalog-sort'){catalogSort=e.target.value;state.catalogSort=catalogSort;save();$('#catalog-results').innerHTML=catalogRows(catalogItems())}if(e.target.id==='store-select'){previewStore=e.target.value;state.lastStore=previewStore;save();render()}});
-document.addEventListener('input',e=>{if(e.target.dataset.receiptIndex!==undefined&&state.receiptDraft){const line=state.receiptDraft.lines[Number(e.target.dataset.receiptIndex)];if(line){line.matchName=e.target.value;save()}}if(e.target.id==='catalog-search'){catalogFilter=e.target.value;$('#catalog-results').innerHTML=catalogRows(catalogItems())}});
+document.addEventListener('input',e=>{if(e.target.dataset.editIndex!==undefined&&state.receiptEdit){const line=state.receiptEdit.lines[Number(e.target.dataset.editIndex)];if(line){line.matchName=e.target.value;refreshReceiptEditStats();save()}}if(e.target.dataset.receiptIndex!==undefined&&state.receiptDraft){const line=state.receiptDraft.lines[Number(e.target.dataset.receiptIndex)];if(line){line.matchName=e.target.value;save()}}if(e.target.id==='catalog-search'){catalogFilter=e.target.value;$('#catalog-results').innerHTML=catalogRows(catalogItems())}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&editing){editing=null;renderModal()}});
 state=load();catalogSort=['count','name','recent','category'].includes(state.catalogSort)?state.catalogSort:'count';previewStore=STORES.includes(state.lastStore)?state.lastStore:STORES[0];render();
 })();
