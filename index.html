@@ -6,7 +6,7 @@
 <meta name="color-scheme" content="light">
 <meta name="theme-color" content="#f3f6f7">
 <meta name="description" content="Ma liste de courses personnelle, mes magasins et mes habitudes.">
-<title>Mes courses — V1.4.2</title>
+<title>Mes courses — V1.4.3</title>
 <style>
 :root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:#182331;background:#f3f6f7;font-synthesis:none}
 *{box-sizing:border-box}
@@ -241,12 +241,38 @@ hr{border:0;border-top:1px solid #e7eeee;margin:18px 0}
 .receipt-edit-stats .pill{font-size:12px}
 .receipt-actions.sticky-actions{position:sticky;bottom:calc(78px + env(safe-area-inset-bottom,0px));background:#fff;padding:9px 0 7px;border-top:1px solid #e8eeee;z-index:2}
 @media(max-width:640px){.history-entry>summary{padding:13px 10px}.history-detail{padding:7px 10px 12px}.receipt-actions.sticky-actions{bottom:calc(74px + env(safe-area-inset-bottom,0px))}}
+
+/* V1.4.3 : ne montrer que l'essentiel dans l'historique. Les options avancées
+   et les tickets restent accessibles et les données ne sont pas modifiées. */
+.history-entry>summary{min-height:75px}
+.history-entry .history-card-value{margin-left:auto;text-align:right;white-space:nowrap}
+.history-entry .history-card-value b{display:block;color:#164d45;font-size:18px}
+.history-entry .history-arrow{display:block;font-size:11px;margin-top:3px}
+.receipt-module{padding:0;overflow:hidden}
+.receipt-module>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;padding:17px 19px}
+.receipt-module>summary::-webkit-details-marker{display:none}
+.receipt-module>summary strong{display:block;font-size:17px;line-height:1.3}
+.receipt-module>summary small{display:block;color:#667b79;font-size:12px;margin-top:5px}
+.receipt-module .receipt-module-caret{color:#44716b;font-weight:750;font-size:12px;white-space:nowrap}
+.receipt-module[open] .receipt-module-caret{display:none}
+.receipt-module-body{padding:0 19px 18px;border-top:1px solid #e3edeb}
+.receipt-module-body .receipt-grid{margin-top:15px}
+.receipt-module-body .receipt-record{padding:12px 0}
+.receipt-record .receipt-issues{margin:8px 0 0}
+.receipt-record .receipt-issues>summary{cursor:pointer;color:#8a611e;font-weight:680;font-size:12px}
+.receipt-record .receipt-issues .receipt-alert{margin-top:6px}
+@media(max-width:640px){
+ .receipt-module>summary{padding:15px 13px}
+ .receipt-module-body{padding:0 13px 15px}
+ .history-entry>summary{padding:13px 11px}
+ .history-entry .history-card-value b{font-size:17px}
+}
 </style>
 </head>
 <body>
 <div class="shell">
   <header>
-    <div><div class="eyebrow">Version 1.4.2</div><h1>Mes courses <span aria-hidden="true">🛒</span></h1><span class="version-mark">v1.4.2</span><p class="sub">Une liste, cinq enseignes, tes habitudes.</p></div>
+    <div><div class="eyebrow">Version 1.4.3</div><h1>Mes courses <span aria-hidden="true">🛒</span></h1><span class="version-mark">v1.4.3</span><p class="sub">Une liste, cinq enseignes, tes habitudes.</p></div>
     <div class="logo" aria-hidden="true">🧺</div>
   </header>
   <nav aria-label="Navigation principale" id="nav"></nav>
@@ -593,17 +619,20 @@ function receiptBreakdown(receipt){
 function renderReceiptModule(){
   const all=state.receipts||[];
   const total=all.reduce((n,r)=>n+r.totalCents,0);
-  return `<div class="card"><div class="section-heading"><h2>🧾 Tickets et dépenses</h2><span class="pill pill-green">${all.length} ticket${all.length>1?'s':''}</span></div>
-    <div class="receipt-grid"><div class="receipt-stat"><b>${money(total)}</b><span>Total des tickets</span></div><div class="receipt-stat"><b>${all.reduce((n,r)=>n+r.lines.length,0)}</b><span>Lignes importées</span></div><div class="receipt-stat"><b>${all.length}</b><span>Tickets rapprochés</span></div></div>
-    <p class="small">Un ticket est d’abord lu à partir de ses photos dans notre conversation, puis préparé en fichier JSON. Ici, l’import et le rapprochement sont gratuits et fonctionnent hors service d’IA payant.</p>
-    <button type="button" class="secondary" data-action="receipt-import">⬆ Importer un ticket préparé (.json)</button>
-    <input id="receipt-file" type="file" accept="application/json,.json" style="display:none">
-    ${!all.length?'<p class="note">Aucune dépense enregistrée pour l’instant.</p>':''}
-    ${all.slice().reverse().map(r=>`<div class="receipt-record"><div style="display:flex;justify-content:space-between;gap:10px"><strong>${safe(r.store)} · ${r.dateUnknown?'Date inconnue':safe(dateStr(r.at))}</strong><strong>${money(r.totalCents)}</strong></div><p>${r.lines.length} lignes · ${r.articleCount||'?'} articles${r.sessionId?' · Rapproché avec une session':''} · Prix détaillés conservés</p>
-      <button type="button" class="ghost" style="margin:8px 0" data-action="receipt-edit-open" data-id="${safe(r.id)}">✏️ Corriger les correspondances</button>
-      ${r.reconciliation?.notOnReceipt?.length?`<div class="receipt-alert">⚠ Cochés mais non retrouvés sur le ticket : ${r.reconciliation.notOnReceipt.map(x=>safe(x.name)).join(', ')}. Aucun achat coché n’a été supprimé automatiquement.</div>`:''}
-      <details><summary class="micro" style="cursor:pointer;font-weight:700">Voir dépenses par rayon et lignes</summary><div class="receipt-ledger">${receiptBreakdown(r)}</div><div style="margin-top:12px">${r.lines.map(l=>`<div class="receipt-line-header" style="padding:5px 0;border-top:1px solid #edf1f1"><span class="micro">${safe(l.rawName)}<br><strong>↳ ${l.productId?safe(product(l.productId)?.name||l.matchName||'Produit'):'Non rapproché'}</strong></span><b>${money(l.amountCents)}</b></div>`).join('')}</div></details></div>`).join('')}
-  </div>${renderReceiptDraft()}`;
+  // This panel is collapsed by default. Import and corrections are always
+  // reachable but don't occupy the main history screen during daily use.
+  return `<details class="card receipt-module" id="receipts-panel">
+    <summary><span><strong>🧾 Tickets et dépenses</strong><small>${all.length} ticket${all.length>1?'s':''} · ${all.length?money(total):'Aucune dépense enregistrée'}</small></span><span class="receipt-module-caret">Gérer ▾</span></summary>
+    <div class="receipt-module-body">
+      ${all.length?`<div class="receipt-grid"><div class="receipt-stat"><b>${money(total)}</b><span>Dépenses enregistrées</span></div><div class="receipt-stat"><b>${all.reduce((n,r)=>n+r.lines.length,0)}</b><span>Lignes de tickets</span></div><div class="receipt-stat"><b>${all.length}</b><span>Tickets importés</span></div></div>`:''}
+      <p class="micro">Les tickets sont préparés à partir de leurs photos, puis importés au format JSON. Tu peux corriger leurs noms à tout moment.</p>
+      <button type="button" class="secondary" data-action="receipt-import">⬆ Importer un ticket (.json)</button>
+      <input id="receipt-file" type="file" accept="application/json,.json" style="display:none">
+      ${all.slice().reverse().map(r=>`<div class="receipt-record"><div style="display:flex;justify-content:space-between;gap:10px"><strong>${safe(r.store)} · ${r.dateUnknown?'Date inconnue':safe(dateStr(r.at))}</strong><strong>${money(r.totalCents)}</strong></div><p>${r.lines.length} lignes · ${r.articleCount||'?'} articles · Prix conservés</p>
+        <button type="button" class="ghost" style="margin:8px 0" data-action="receipt-edit-open" data-id="${safe(r.id)}">✏️ Corriger les correspondances</button>
+        ${r.reconciliation?.notOnReceipt?.length?`<details class="receipt-issues"><summary>${r.reconciliation.notOnReceipt.length} élément(s) cochés non rapprochés · Voir</summary><div class="receipt-alert">${r.reconciliation.notOnReceipt.map(x=>safe(x.name)).join(', ')}. Les achats cochés ne sont pas retirés automatiquement. Pour tes prochaines courses, décoche simplement les produits non achetés.</div></details>`:''}
+        <details><summary class="micro" style="cursor:pointer;font-weight:700">Voir les dépenses par rayon et les références</summary><div class="receipt-ledger">${receiptBreakdown(r)}</div><div style="margin-top:12px">${r.lines.map(l=>`<div class="receipt-line-header" style="padding:5px 0;border-top:1px solid #edf1f1"><span class="micro">${safe(l.rawName)}<br><strong>↳ ${l.productId?safe(product(l.productId)?.name||l.matchName||'Produit'):'Non rapproché'}</strong></span><b>${money(l.amountCents)}</b></div>`).join('')}</div></details></div>`).join('')}
+    </div></details>${renderReceiptDraft()}`;
 }
 function finishReceipt(){
   const d=state.receiptDraft;if(!d)return;
@@ -640,17 +669,16 @@ function renderHistoryEntry(h){
   if(r)for(const l of r.lines||[]){if(!l.productId)continue;const p=priceMap.get(l.productId)||{cents:0,lines:0};p.cents+=l.amountCents;p.lines++;priceMap.set(l.productId,p)}
   const items=[...new Map((h.items||[]).map(it=>[it.id,it])).values()];
   const missing=r?items.filter(it=>!priceMap.has(it.id)).length:0;
-  const attached=r?` · 🧾 ${money(r.totalCents)}`:'';
-  return `<details class="history-entry"><summary><div><div class="history-title">🛍️ ${safe(h.store)} · ${safe(whenText(h))}</div><div class="history-meta">${items.length} produit${items.length>1?'s':''} enregistré${items.length>1?'s':''}${attached}</div></div><span class="history-arrow">Voir ▾</span></summary>
-    <div class="history-detail">${r?`<p class="micro">Regroupé par produit de ton catalogue. Les références exactes et leurs prix restent disponibles dans « Tickets et dépenses ».</p>`:''}
-      ${missing?`<div class="session-reconcile">${missing} produit${missing>1?'s':''} coché${missing>1?'s':''} non relié${missing>1?'s':''} au ticket. Tu peux corriger les correspondances ci-dessous ; aucun achat coché n'est supprimé automatiquement.</div>`:''}
+  return `<details class="history-entry"><summary><div><div class="history-title">🛍️ ${safe(h.store)}</div><div class="history-meta">${safe(whenText(h))} · ${items.length} produit${items.length>1?'s':''}</div></div><div class="history-card-value">${r?`<b>${money(r.totalCents)}</b>`:'<span class="pill">Sans ticket</span>'}<span class="history-arrow">Voir ▾</span></div></summary>
+    <div class="history-detail">${r?`<p class="micro">Achats regroupés par produit. Les références détaillées sont conservées dans « Tickets et dépenses ».</p>`:''}
+      ${missing?`<div class="session-reconcile">${missing} produit${missing>1?'s':''} coché${missing>1?'s':''} non relié${missing>1?'s':''} au ticket. Ces achats restent enregistrés ; tu peux ajuster les correspondances dans « Tickets et dépenses ».</div>`:''}
       ${items.map(it=>renderHistoryRow(it,priceMap,r)).join('')||'<div class="empty">Aucun produit</div>'}
     </div></details>`;
 }
 function renderHistory(){return `<div class="card"><div class="section-heading"><h2>Historique des courses</h2><span class="pill pill-blue">${state.history.length} session${state.history.length>1?'s':''}</span></div>
   ${state.history.length?state.history.slice().reverse().map(renderHistoryEntry).join(''):'<div class="empty">Après une première session terminée, les achats apparaîtront ici.</div>'}
   </div>${renderReceiptModule()}${renderReceiptEditor()}
-  <details class="card data-settings"><summary>⚙️ Sauvegardes et données · v1.4.2</summary><div class="data-inner"><p class="small">Tes listes, tickets et rapprochements sont enregistrés uniquement dans ce navigateur. Aucun partage automatique avec ton ordinateur.</p><div class="settings-row"><button class="secondary" data-action="export">⬇ Exporter une sauvegarde</button><button class="secondary" data-action="import">⬆ Importer une sauvegarde</button><button class="destructive" data-action="reset">Effacer mes données</button></div><input id="import-file" type="file" accept="application/json,.json" style="display:none"><div class="hint">La sauvegarde inclut les tickets, leurs corrections, les achats cochés et les correspondances apprises. Chaque export a un nom unique.</div></div></details>`}
+  <details class="card data-settings"><summary>⚙️ Sauvegardes et données · v1.4.3</summary><div class="data-inner"><p class="small">Tes listes, tickets et rapprochements sont enregistrés uniquement dans ce navigateur. Aucun partage automatique avec ton ordinateur.</p><div class="settings-row"><button class="secondary" data-action="export">⬇ Exporter une sauvegarde</button><button class="secondary" data-action="import">⬆ Importer une sauvegarde</button><button class="destructive" data-action="reset">Effacer mes données</button></div><input id="import-file" type="file" accept="application/json,.json" style="display:none"><div class="hint">La sauvegarde inclut les tickets, leurs corrections, les achats cochés et les correspondances apprises. Chaque export a un nom unique.</div></div></details>`}
 
 function renderModal(){const root=$('#modal-root');if(!editing){root.innerHTML='';return}const p=product(editing);if(!p){editing=null;root.innerHTML='';return}root.innerHTML=`<div class="modal-backdrop" data-action="close-modal-backdrop"><div class="modal" role="dialog" aria-modal="true" aria-label="Modifier un produit"><h2>Modifier : ${safe(p.name)}</h2><form id="edit-form"><label class="field" for="edit-category">Rayon</label><select class="field-input" id="edit-category" name="category">${CATEGORIES.map(c=>`<option value="${safe(c)}" ${c===p.category?'selected':''}>${safe(c)}</option>`).join('')}</select><div style="margin-top:17px"><label class="field">Magasins habituels (0, 1 ou plusieurs)</label><div class="store-grid">${STORES.map(s=>`<label class="store-check"><input type="checkbox" name="store" value="${safe(s)}" ${p.stores.includes(s)?'checked':''}>${safe(s)}</label>`).join('')}</div></div><label class="store-check"><input name="manual" type="checkbox" ${p.storeMode==='manual'?'checked':''}>Conserver ces magasins comme choix manuel (prioritaire sur l'apprentissage)</label><p class="micro">Si décoché, de nouveaux achats pourront compléter automatiquement cette liste de magasins.</p><div class="session-actions"><button type="submit" class="primary">Enregistrer</button><button type="button" class="secondary" data-action="close-modal">Annuler</button></div></form></div></div>`}
 function render(){renderNav();$('#main').innerHTML=tab==='list'?renderList():tab==='store'?renderStore():tab==='catalog'?renderCatalog():renderHistory();renderModal()}
