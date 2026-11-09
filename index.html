@@ -6,7 +6,7 @@
 <meta name="color-scheme" content="light">
 <meta name="theme-color" content="#f3f6f7">
 <meta name="description" content="Ma liste de courses personnelle, mes magasins et mes habitudes.">
-<title>Mes courses — V1.2</title>
+<title>Mes courses — V1.3</title>
 <style>
 :root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:#182331;background:#f3f6f7;font-synthesis:none}
 *{box-sizing:border-box}
@@ -96,7 +96,7 @@ hr{border:0;border-top:1px solid #e7eeee;margin:18px 0}
 @media(max-width:640px){.catalog-controls{grid-template-columns:1fr}.shell{padding:14px 12px 95px}.card{padding:16px;border-radius:17px}.add-grid{grid-template-columns:minmax(0,1fr) 88px}.add-grid .add-button{grid-column:1/-1}.add-button{width:100%}nav button{font-size:11px;padding:12px 2px}.list-selector{display:block}.list-selector button{width:100%;margin-top:8px}.store-grid{grid-template-columns:1fr 1fr}.item-name{font-size:14px}.small{font-size:12px}}
 @media(prefers-reduced-motion:no-preference){button{transition:background .15s ease}}
 
-/* V1.2: navigation lisible sur mobile et densite utile */
+/* V1.3: navigation mobile et sessions enrichies */
 .nav-icon{margin-right:5px}
 .nav-text-mobile{display:none}
 .data-settings{display:block}
@@ -156,12 +156,39 @@ hr{border:0;border-top:1px solid #e7eeee;margin:18px 0}
   .modal-backdrop{align-items:flex-end;padding:0}
   .modal{max-height:90dvh;border-radius:18px 18px 0 0;padding:20px 16px calc(20px + env(safe-area-inset-bottom,0px))}
 }
+
+/* V1.3 — distinction nette entre les achats restants et le panier */
+.pending-head{display:flex;align-items:center;justify-content:space-between;gap:9px;margin-bottom:8px}
+.pending-head h2{margin:0;font-size:18px;color:#183b35}
+.pending-count{background:#164d46;color:#fff;border-radius:999px;font-size:12px;font-weight:850;padding:5px 10px;white-space:nowrap}
+.pending-list .item-name{font-weight:850;color:#12292e;font-size:16px}
+.pending-list .item{border-top:1px solid #e9eeee;min-height:52px}
+.pending-list .check{width:26px;height:26px}
+.basket-details{border:1px solid #dce6e5;background:#f5f8f8;border-radius:14px;margin-top:14px;overflow:hidden}
+.basket-details>summary{cursor:pointer;list-style:none;padding:13px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px;font-weight:780;color:#2d6260}
+.basket-details>summary::-webkit-details-marker{display:none}
+.basket-details>summary:after{content:'Afficher';font-size:12px;color:#4c6d6c;font-weight:650}
+.basket-details[open]>summary:after{content:'Masquer'}
+.basket-content{padding:0 12px 10px;border-top:1px solid #dce6e5}
+.basket-content .item-name{font-weight:500;color:#718184;text-decoration:line-through}
+.basket-content .item{min-height:47px}
+.basket-help{font-size:12px;color:#566a6d;margin:11px 0 4px}
+.unplanned-box{margin-top:10px;border:1px solid #cfe7dc;border-radius:14px;background:#f4faf7;padding:12px}
+.unplanned-box>summary{cursor:pointer;list-style:none;font-weight:760;color:#185b50}
+.unplanned-box>summary::-webkit-details-marker{display:none}
+.unplanned-box>summary::before{content:'＋ ';font-weight:850}
+.unplanned-form{display:grid;grid-template-columns:minmax(0,1fr) 140px;gap:8px;margin-top:12px;align-items:end}
+.unplanned-form button{grid-column:1/-1}
+.tag-unplanned{display:inline-block;color:#975a16;background:#fff2dc;padding:2px 6px;border-radius:5px;font-size:10px;font-weight:750;margin-left:5px;text-decoration:none}
+.session-meta{margin:0;color:#36645b;font-size:13px}
+.remaining-empty{background:#e7f6ef;color:#195d49;border-radius:11px;padding:12px;font-weight:700;font-size:14px}
+@media(max-width:640px){.unplanned-form{grid-template-columns:minmax(0,1fr) 105px}.pending-list .item-name{font-size:16px}.session-head{padding:12px}.basket-details>summary{padding:14px 11px}}
 </style>
 </head>
 <body>
 <div class="shell">
   <header>
-    <div><div class="eyebrow">Version 1.2</div><h1>Mes courses <span aria-hidden="true">🛒</span></h1><p class="sub">Une liste, cinq enseignes, tes habitudes.</p></div>
+    <div><div class="eyebrow">Version 1.3</div><h1>Mes courses <span aria-hidden="true">🛒</span></h1><p class="sub">Une liste, cinq enseignes, tes habitudes.</p></div>
     <div class="logo" aria-hidden="true">🧺</div>
   </header>
   <nav aria-label="Navigation principale" id="nav"></nav>
@@ -174,22 +201,19 @@ hr{border:0;border-top:1px solid #e7eeee;margin:18px 0}
 (()=>{'use strict';
 const KEY='liste-courses-perso-v1';
 const STORES=['Aldi','Super U','Carrefour','Grand Frais','Picard'];
-const CATEGORIES=["Fruits et l\u00e9gumes","Boucherie / Charcuterie","Poissonnerie","Produits frais","\u00c9picerie sal\u00e9e","\u00c9picerie sucr\u00e9e","Surgel\u00e9s","Boissons","Hygi\u00e8ne et beaut\u00e9","Maison et entretien","Animaux","Autres"];
-
+const CATEGORIES=['Fruits et légumes','Boucherie / Charcuterie','Poissonnerie','Crèmerie et œufs','Yaourts et desserts frais','Fromages','Traiteur frais et plats préparés','Autres produits frais','Épicerie salée','Épicerie sucrée','Surgelés','Boissons','Hygiène et beauté','Maison et entretien','Animaux','Autres'];
 const RULES=[
-['Fruits et légumes',/banane|pomme|poire|orange|mandarine|cl[eé]mentine|citron|avocat|salade|tomate|carotte|concombre|courgette|oignon|ail|poireau|pomme de terre|patate|champignon|aubergine|fraises?|framboise|cerise|kiwi|melon|past[eè]que|brocoli|chou|courge|fruit|l[eé]gume frais/i],
-['Boucherie et poissonnerie',/poulet|steak|viande|boeuf|b[œo]uf|porc|jambon|saumon|thon frais|cabillaud|poisson|crevette|escalope|saucisse|merguez|canard|dinde/i],
-['Produits frais',/lait|yaourt|yogourt|fromage|beurre|cr[eè]me|oeuf|œuf|mozzarella|ricotta|faisselle|dessert lact[eé]|skyr/i],
-['Surgelés',/surgel|glace|sorbet|po[eê]l[eé]e|nugget|frites surgel|pizza surgel/i],
-['Épicerie salée',/p[aâ]te|riz|semoule|farine|conserve|lentille|pois chiche|huile|vinaigre|sel|poivre|sauce|pesto|soupe|biscotte|pain|quinoa|couscous|c[eé]r[eé]ale sal[eé]e/i],
-['Épicerie sucrée',/caf[eé]|sucre|chocolat|biscuit|confiture|miel|nutella|gateau|g[aâ]teau|compote|c[eé]r[eé]ale|th[eé]|bonbon/i],
-['Boissons',/eau|jus|soda|coca|limonade|sirop|bi[eè]re|vin|boisson/i],
-['Hygiène et beauté',/dentifrice|brosse [aà] dent|shampo|savon|gel douche|d[eé]odorant|coton|rasoir|papier toilette|mouchoir|protections?/i],
-['Maison et entretien',/lessive|adoucissant|liquide vaisselle|pastille lave|nettoyant|eponge|[eé]ponge|sac poubelle|essuie.tout|papier alu|film alimentaire|serpilli[eè]re/i],
-['Animaux',/croquette|liti[eè]re|p[aâ]t[eé]e chat|p[aâ]t[eé]e chien/i]
+  ['Fruits et légumes',/banane|pomme|poire|orange|mandarine|cl[eé]mentine|citron|avocat|salade|tomate|carotte|concombre|courgette|oignon|ail|poireau|pomme de terre|patate|champignon|aubergine|fraises?|framboise|cerise|kiwi|melon|past[eè]que|brocoli|chou|courge|fruit|l[eé]gume frais/i],
+  ['Surgelés',/surgel|glace|sorbet|po[eê]l[eé]e|nugget|frites surgel|pizza surgel/i],
+  ['Épicerie salée',/p[aâ]te|riz|semoule|farine|conserve|lentille|pois chiche|huile|vinaigre|sel|poivre|sauce|pesto|soupe|biscotte|pain|quinoa|couscous/i],
+  ['Épicerie sucrée',/caf[eé]|sucre|chocolat|biscuit|confiture|miel|nutella|gateau|g[aâ]teau|compote|c[eé]r[eé]ale|th[eé]|bonbon/i],
+  ['Boissons',/eau|jus|soda|coca|limonade|sirop|bi[eè]re|vin|boisson/i],
+  ['Hygiène et beauté',/dentifrice|brosse [aà] dent|shampo|savon|gel douche|d[eé]odorant|coton|rasoir|papier toilette|mouchoir|protections?/i],
+  ['Maison et entretien',/lessive|adoucissant|liquide vaisselle|pastille lave|nettoyant|eponge|[eé]ponge|sac poubelle|essuie.tout|papier alu|film alimentaire|serpilli[eè]re/i],
+  ['Animaux',/croquette|liti[eè]re|p[aâ]t[eé]e chat|p[aâ]t[eé]e chien/i]
 ];
 const emptyState=()=>({products:[],list:[],history:[],session:null,dismissed:{}});
-let state;let tab='list';let editing=null;let catalogFilter='';let catalogSort='count';let previewStore='Aldi';let toastTimer=null;
+let state;let tab='list';let editing=null;let catalogFilter='';let catalogSort='count';let previewStore='Aldi';let toastTimer=null;let basketOpen=false;
 const $=s=>document.querySelector(s);
 const safe=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase().replace(/\s+/g,' ');
@@ -198,17 +222,34 @@ const dateStr=s=>new Date(s).toLocaleDateString('fr-FR',{day:'numeric',month:'sh
 const dateDiff=(older,newer)=>Math.max(0,Math.floor((new Date(newer)-new Date(older))/86400000));
 function categoryFor(name){
   const n=norm(name);
-  if(/danettes?|creme dessert|dessert lacte|flan|mousse au chocolat|petit suisse/.test(n))return 'Produits frais';
-  if(/bacon|lardons?|charcuterie|saucisson|chorizo|rillettes|jambon|tranche de dinde|salami|mortadelle/.test(n))return 'Boucherie / Charcuterie';
-  if(/saumon|cabillaud|poisson|crevette|truite|thon frais|merlu|sardine|maquereau|colin/.test(n))return 'Poissonnerie';
-  const existing=RULES.find(([_,re])=>re.test(n))?.[0]||'Autres';
-  return existing==='Boucherie et poissonnerie'?'Boucherie / Charcuterie':existing;
+  // L'ordre des contrôles évite que « Danette chocolat » passe en épicerie sucrée,
+  // ou que « cappelletti au jambon cru » soit confondu avec de la charcuterie.
+  if(/surgel|glace|sorbet|pizza surgel/.test(n))return 'Surgelés';
+  if(/cappelletti|ravioli|tielle|lasagne|quiche|plat cuisine|plat prepare|poke|w akame|wakam[eé]|salade composee|choucroute cuite|taboule|tofu/.test(n))return 'Traiteur frais et plats préparés';
+  if(/saumon|cabillaud|poisson|crevette|truite|thon frais|merlu|sardine|maquereau|colin|fruits de mer/.test(n))return 'Poissonnerie';
+  if(/bacon|lardons?|charcuterie|saucisson|chorizo|rillettes|jambon|tranche de dinde|salami|mortadelle|poulet|steak|viande|boeuf|porc|saucisse|merguez|canard|escalope/.test(n))return 'Boucherie / Charcuterie';
+  if(/danettes?|yaourts?|yogourts?|skyr|creme dessert|dessert lacte|flan|mousse au chocolat|petits? suisses?|riz au lait|faisselle/.test(n))return 'Yaourts et desserts frais';
+  if(/fromage|reblochon|halloumi|roquefort|comte|camembert|brie|chevre|cheddar|mozzarella|ricotta|feta|parmesan|emmental|gruyere|boursin|raclette|societe creme/.test(n))return 'Fromages';
+  if(/(^| )oeufs?( |$)|(^| )œufs?( |$)|^lait\b|^beurre\b|creme fraiche|creme epaisse|creme liquide|creme fleurette/.test(n))return 'Crèmerie et œufs';
+  if(/refriger|frais|refriger[eé]|pasteurise/.test(n))return 'Autres produits frais';
+  return RULES.find(([_,re])=>re.test(n))?.[0]||'Autres';
 }
 function migrateCategories(obj){
-  for(const p of (obj.products||[])){
+  for(const p of obj.products||[]){
+    if(!Array.isArray(p.stores))p.stores=[];
     if(p.category==='Boucherie et poissonnerie'){
       p.category=/saumon|cabillaud|poisson|crevette|truite|thon|merlu|sardine|maquereau|colin/.test(norm(p.name))?'Poissonnerie':'Boucherie / Charcuterie';
+    }else if(p.category==='Produits frais'){
+      // Les anciennes catégories génériques sont réparties une fois dans les nouveaux rayons.
+      const suggested=categoryFor(p.name);
+      p.category=['Crèmerie et œufs','Yaourts et desserts frais','Fromages','Traiteur frais et plats préparés'].includes(suggested)?suggested:'Autres produits frais';
     }
+  }
+  if(obj.session){
+    if(!Array.isArray(obj.session.checked))obj.session.checked=[];
+    if(!Array.isArray(obj.session.extras))obj.session.extras=[];
+    // Une liste issue d'une ancienne version reste utilisable en session.
+    obj.session.checked=[...new Set(obj.session.checked)];
   }
   return obj;
 }
@@ -227,18 +268,43 @@ function listRow(it){const p=product(it.id);if(!p)return '';return `<div class="
 function suggestions(){const today=new Date();let suggestions=[];for(const p of state.products){if(state.list.some(i=>i.id===p.id))continue;const dates=state.history.filter(h=>(h.items||[]).some(i=>i.id===p.id)).map(h=>new Date(h.at)).filter(d=>!isNaN(d)).sort((a,b)=>a-b);if(dates.length<2)continue;const intervals=[];for(let i=1;i<dates.length;i++){const d=dateDiff(dates[i-1],dates[i]);if(d>=1)intervals.push(d)}if(!intervals.length)continue;const avg=intervals.reduce((a,b)=>a+b,0)/intervals.length;const since=dateDiff(dates[dates.length-1],today);if(since<Math.max(2,Math.round(avg*.8)))continue;const dismissed=state.dismissed[p.id];if(dismissed&&dateDiff(dismissed,today)<7)continue;suggestions.push({p,since,avg,score:since/avg})}return suggestions.sort((a,b)=>b.score-a.score).slice(0,5)}
 function renderSuggestions(){const suggestionsList=suggestions();if(!suggestionsList.length)return `<div class="card"><div class="section-heading"><h2>✨ Peut-être à acheter</h2></div><div class="empty">Après au moins deux achats d'un même produit à des dates différentes, des suggestions apparaîtront ici. Elles ne seront jamais ajoutées automatiquement.</div></div>`;return `<div class="card"><div class="section-heading"><h2>✨ Peut-être à acheter</h2><span class="pill pill-green">À valider</span></div><p class="micro">Ces propositions se basent sur ton historique. Tu décides pour chaque article.</p>${suggestionsList.map(x=>`<div class="suggestion"><div class="item-body"><div class="item-name">${safe(x.p.name)}</div><div class="item-sub">Habituellement tous les ~${Math.round(x.avg)} j. · Dernier achat il y a ${x.since} j.</div></div><button class="primary" data-action="quickadd" data-id="${x.p.id}">+ Ajouter</button><button class="icon-btn" title="Pas maintenant (7 jours)" data-action="dismiss" data-id="${x.p.id}">×</button></div>`).join('')}</div>`}
 function renderList(){const favorite=state.products.filter(p=>p.favorite||countProduct(p.id)>=2).filter(p=>!state.list.some(i=>i.id===p.id)).sort((a,b)=>Number(b.favorite)-Number(a.favorite)||countProduct(b.id)-countProduct(a.id)).slice(0,10);return `<div class="card"><div class="section-heading"><h2>Ajouter un produit</h2><span class="pill">Saisie rapide</span></div><form id="add-form" class="add-grid"><div><label class="field" for="product-name">Produit</label><input class="field-input" id="product-name" name="name" list="known-products" maxlength="100" autocomplete="off" placeholder="Ex. lait, bananes, pâtes" required><datalist id="known-products">${state.products.map(p=>`<option value="${safe(p.name)}"></option>`).join('')}</datalist></div><div><label class="field" for="quantity">Quantité (facultative)</label><input class="field-input" id="quantity" name="quantity" maxlength="80" placeholder="Ex. 6 bouteilles"></div><button type="submit" class="primary add-button">+ Ajouter</button></form>${favorite.length?`<div style="margin-top:16px"><label class="field">Mes produits habituels</label><div class="chips">${favorite.map(p=>`<button class="chip" type="button" data-action="quickadd" data-id="${p.id}">+ ${safe(p.name)}</button>`).join('')}</div></div>`:`<p class="micro guide" style="margin:13px 0 0">Les produits habituels apparaîtront ici après tes achats. Tu peux aussi en marquer comme favoris dans l'onglet « Habitudes ».</p>`}</div><div class="card"><div class="section-heading"><h2>Ma liste globale</h2><span class="pill pill-blue">${state.list.length} produit${state.list.length>1?'s':''}</span></div>${state.list.length?grouped(state.list,listRow):'<div class="empty">Ta liste est vide. Ajoute un premier article ci-dessus : il sera classé automatiquement par rayon.</div>'}<div class="hint guide">Tu prépares une seule liste. Dans « En magasin », tu pourras voir les produits habituels de l’enseigne et les autres séparément.</div></div>${renderSuggestions()}`}
-function sessionRow(it,other=false){const p=product(it.id);if(!p)return '';const checked=state.session?.checked.includes(it.id);const unknown=!p.stores.length;const otherStores=other?p.stores.join(', '):'';return `<div class="item ${checked?'checked':''}"><input class="check" type="checkbox" data-action="check" data-id="${p.id}" ${checked?'checked':''} aria-label="Acheté : ${safe(p.name)}"><div class="item-body"><div class="item-name">${safe(p.name)}${it.quantity?` <span class="pill">${safe(it.quantity)}</span>`:''}</div><div class="item-sub">${other?`Habituellement : ${safe(otherStores)}`:unknown?'Magasin non identifié : tu peux quand même acheter ce produit.':safe(p.category)}</div></div></div>`}
+function sessionRow(it,other=false,bought=false){
+  const p=product(it.id);if(!p)return '';
+  const checked=state.session?.checked.includes(it.id);
+  const unexpected=(state.session?.extras||[]).some(x=>x.id===it.id);
+  const unknown=!p.stores.length;
+  const sub=unexpected?'Achat ajouté sur place':other?`Habituellement : ${p.stores.join(', ')}`:unknown?'Magasin non identifié':p.category;
+  return `<div class="item ${checked?'checked':''}"><input class="check" type="checkbox" data-action="check" data-id="${p.id}" ${checked?'checked':''} aria-label="${checked?'Retirer du panier':'Mettre dans le panier'} : ${safe(p.name)}"><div class="item-body"><div class="item-name">${safe(p.name)}${it.quantity?` <span class="pill">${safe(it.quantity)}</span>`:''}${unexpected?'<span class="tag-unplanned">Imprévu</span>':''}</div><div class="item-sub">${safe(sub)}</div></div></div>`;
+}
 function renderStore(){
   if(!state.session){
     const main=state.list.filter(i=>{const p=product(i.id);return p&&(!p.stores.length||p.stores.includes(previewStore))});
     const other=state.list.filter(i=>{const p=product(i.id);return p&&p.stores.length&&!p.stores.includes(previewStore)});
-    return `<div class="card"><h2>Pr\u00e9parer mes courses</h2><p class="small">Choisis un magasin pour voir les produits correspondants. Le filtrage est imm\u00e9diat et ta liste globale reste intacte.</p><div class="list-selector"><div><label class="field" for="store-select">Enseigne</label><select id="store-select" class="field-input">${STORES.map(s=>`<option value="${safe(s)}" ${s===previewStore?'selected':''}>${safe(s)}</option>`).join('')}</select></div><button class="primary" data-action="start">Commencer mes courses</button></div><div class="hint guide">Les produits sans magasin connu sont conserv\u00e9s dans la section principale pour \u00e9viter les oublis. Les cases \u00e0 cocher apparaissent apr\u00e8s avoir commenc\u00e9 une session.</div></div><div class="card"><div class="section-heading"><h2>\u00c0 acheter ici \u00b7 ${safe(previewStore)}</h2><span class="pill pill-green">${main.length} article${main.length>1?'s':''}</span></div>${main.length?grouped(main,listRow):'<div class="empty">Aucun produit associ\u00e9 \u00e0 ce magasin.</div>'}<div class="all-other"><div class="section-heading"><h2>Autres produits de ma liste</h2><span class="pill">${other.length}</span></div>${other.length?grouped(other,listRow):'<p class="micro">Aucun autre produit.</p>'}</div></div>`;
+    return `<div class="card"><h2>Préparer mes courses</h2><p class="small">Choisis un magasin : la liste s'adapte immédiatement, sans modifier ta liste globale.</p><div class="list-selector"><div><label class="field" for="store-select">Enseigne</label><select id="store-select" class="field-input">${STORES.map(s=>`<option value="${safe(s)}" ${s===previewStore?'selected':''}>${safe(s)}</option>`).join('')}</select></div><button class="primary" data-action="start">Commencer mes courses</button></div></div><div class="card"><div class="section-heading"><h2>À acheter ici · ${safe(previewStore)}</h2><span class="pill pill-green">${main.length} article${main.length>1?'s':''}</span></div>${main.length?grouped(main,listRow):'<div class="empty">Aucun produit associé à ce magasin.</div>'}<div class="all-other"><div class="section-heading"><h2>Autres produits de ma liste</h2><span class="pill">${other.length}</span></div>${other.length?grouped(other,listRow):'<p class="micro">Aucun autre produit.</p>'}</div></div>`;
   }
-  const selectedStore=state.session.store;
-  const main=state.list.filter(i=>{const p=product(i.id);return p&&(!p.stores.length||p.stores.includes(selectedStore))});
-  const other=state.list.filter(i=>{const p=product(i.id);return p&&p.stores.length&&!p.stores.includes(selectedStore)});
-  const count=state.session.checked.length;
-  return `<div class="card"><div class="session-head"><b>\ud83d\udecd\ufe0f ${safe(selectedStore)} \u00b7 Session en cours</b><p>${count} produit${count>1?'s':''} coch\u00e9${count>1?'s':''} sur ${state.list.length} \u00b7 Tes achats ne sont pas encore enregistr\u00e9s.</p></div><div class="section-heading"><h2>\u00c0 acheter ici</h2><span class="pill pill-green">${main.length} article${main.length>1?'s':''}</span></div>${main.length?grouped(main,i=>sessionRow(i,false)):'<div class="empty">Aucun produit identifi\u00e9 pour ce magasin.</div>'}<div class="all-other"><div class="section-heading"><h2>Autres produits de ma liste</h2><span class="pill">${other.length}</span></div>${other.length?grouped(other,i=>sessionRow(i,true)):'<p class="micro">Aucun autre produit pour le moment.</p>'}<p class="note">Tu peux aussi cocher un article de cette section si tu l'ach\u00e8tes finalement ici.</p></div><div class="session-actions"><button class="primary" data-action="finish">\u2713 Terminer mes courses</button><button class="secondary" data-action="cancel">Annuler la session</button></div><p class="micro">\u00ab Terminer \u00bb enregistre les articles coch\u00e9s et retire uniquement ceux-ci de ta liste. Le reste est conserv\u00e9.</p></div>`;
+  const s=state.session;
+  const all=[...state.list,...(s.extras||[])];
+  const checkedSet=new Set(s.checked);
+  const pending=all.filter(i=>!checkedSet.has(i.id));
+  const main=pending.filter(i=>{const p=product(i.id);return p&&(!p.stores.length||p.stores.includes(s.store))});
+  const other=pending.filter(i=>{const p=product(i.id);return p&&p.stores.length&&!p.stores.includes(s.store)});
+  const bought=all.filter(i=>checkedSet.has(i.id));
+  return `<div class="card">
+    <div class="session-head"><b>🛍️ ${safe(s.store)} · Session en cours</b><p class="session-meta"><strong>${pending.length} à trouver</strong> · ${bought.length} dans mon panier</p></div>
+    <details class="unplanned-box" id="extra-details"><summary>Ajouter un achat imprévu</summary>
+      <form id="unexpected-form" class="unplanned-form">
+        <div><label class="field" for="unexpected-name">Produit acheté</label><input class="field-input" id="unexpected-name" name="name" list="unexpected-known" maxlength="100" placeholder="Ex. mozzarella" required><datalist id="unexpected-known">${state.products.map(p=>`<option value="${safe(p.name)}"></option>`).join('')}</datalist></div>
+        <div><label class="field" for="unexpected-quantity">Quantité (facultative)</label><input class="field-input" id="unexpected-quantity" name="quantity" maxlength="80" placeholder="Ex. 2"></div>
+        <button class="primary" type="submit">✓ Ajouter dans mon panier</button>
+      </form><p class="note">Cet achat sera enregistré à la fin de la session, sans ajout à ta liste globale.</p>
+    </details>
+    <div style="margin-top:15px" class="pending-head"><h2>À trouver ici</h2><span class="pending-count">${main.length} restant${main.length>1?'s':''}</span></div>
+    <div class="pending-list">${main.length?grouped(main,i=>sessionRow(i,false,false)):'<div class="remaining-empty">✓ Plus rien à trouver dans ce magasin.</div>'}</div>
+    ${other.length?`<div class="all-other"><div class="pending-head"><h2>Autres produits de ma liste</h2><span class="pill">${other.length}</span></div><div class="pending-list">${grouped(other,i=>sessionRow(i,true,false))}</div><p class="note">Tu peux aussi acheter ces produits dans ce magasin.</p></div>`:''}
+    <details id="basket-details" class="basket-details" ${basketOpen?'open':''}><summary><span>✓ Dans mon panier (${bought.length})</span></summary><div class="basket-content">${bought.length?bought.map(i=>sessionRow(i,false,true)).join(''):'<p class="basket-help">Aucun produit coché pour l’instant.</p>'}<p class="basket-help">Décoche un produit pour le remettre dans « À trouver ».</p></div></details>
+    <div class="session-actions"><button class="primary" data-action="finish">✓ Terminer mes courses (${bought.length})</button><button class="secondary" data-action="cancel">Annuler la session</button></div>
+    <p class="micro">Seuls les articles dans ton panier seront enregistrés à la fin. Les autres resteront sur ta liste globale.</p>
+  </div>`;
 }
 function lastPurchase(id){
   let mostRecent=0;
@@ -277,15 +343,47 @@ function catalogRows(items){
     return `${heading}<div class="item"><button type="button" class="icon-btn" data-action="favorite" data-id="${p.id}" title="${p.favorite?'Retirer des favoris':'Mettre en favori'}" aria-label="Favori ${safe(p.name)}">${p.favorite?'\u2605':'\u2606'}</button><div class="item-body"><div class="item-name">${safe(p.name)}</div><div class="item-sub">${safe(p.category)} \u00b7 ${p.stores.length?safe(p.stores.join(', ')):'Magasin inconnu'} \u00b7 <strong class="purchase-count">${n} achat${n>1?'s':''}</strong>${when?` <span class="last-purchase">\u00b7 Dernier achat : ${safe(dateStr(when))}</span>`:''}</div></div><div class="item-actions"><button type="button" class="icon-btn" data-action="edit" data-id="${p.id}" title="Corriger">\u270e</button><button type="button" class="ghost" data-action="quickadd" data-id="${p.id}" ${state.list.some(i=>i.id===p.id)?'disabled':''}>+ Ajouter</button></div></div>`;
   }).join('');
 }
-function renderHistory(){return `<div class="card"><div class="section-heading"><h2>Historique des courses</h2><span class="pill pill-blue">${state.history.length} session${state.history.length>1?'s':''}</span></div>${state.history.length?state.history.slice().reverse().map(h=>`<div class="history-card"><h3>🛍️ ${safe(h.store)} · ${dateStr(h.at)}</h3><p>${h.items.map(i=>safe(i.name)+(i.quantity?' ('+safe(i.quantity)+')':'')).join(' · ')||'Aucun achat'}</p></div>`).join(''):'<div class="empty">Après une première session terminée, les achats apparaîtront ici. C’est cet historique qui permettra d’apprendre tes habitudes.</div>'}</div><details class="card data-settings"><summary>⚙️ Sauvegardes et données</summary><div class="data-inner"><p class="small">Dans cette première version, les informations restent sur le navigateur et l'appareil où tu utilises ce fichier. Il n'y a pas encore de synchronisation entre ton ordinateur et ton téléphone.</p><div class="settings-row"><button class="secondary" data-action="export">⬇ Exporter une sauvegarde</button><button class="secondary" data-action="import">⬆ Importer une sauvegarde</button><button class="destructive" data-action="reset">Effacer mes données</button></div><input id="import-file" type="file" accept="application/json,.json" style="display:none"><div class="hint">Sauvegarde conseillée : exporte de temps en temps un fichier JSON. Nous pourrons ensuite installer un stockage plus durable, par exemple dans Google Sheets.</div></div></details>`}
+function renderHistory(){return `<div class="card"><div class="section-heading"><h2>Historique des courses</h2><span class="pill pill-blue">${state.history.length} session${state.history.length>1?'s':''}</span></div>${state.history.length?state.history.slice().reverse().map(h=>`<div class="history-card"><h3>🛍️ ${safe(h.store)} · ${dateStr(h.at)}</h3><p>${h.items.map(i=>safe(i.name)+(i.quantity?' ('+safe(i.quantity)+')':'')+(i.unexpected?' [imprévu]':'')).join(' · ')||'Aucun achat'}</p></div>`).join(''):'<div class="empty">Après une première session terminée, les achats apparaîtront ici. C’est cet historique qui permettra d’apprendre tes habitudes.</div>'}</div><details class="card data-settings"><summary>⚙️ Sauvegardes et données</summary><div class="data-inner"><p class="small">Dans cette première version, les informations restent sur le navigateur et l'appareil où tu utilises ce fichier. Il n'y a pas encore de synchronisation entre ton ordinateur et ton téléphone.</p><div class="settings-row"><button class="secondary" data-action="export">⬇ Exporter une sauvegarde</button><button class="secondary" data-action="import">⬆ Importer une sauvegarde</button><button class="destructive" data-action="reset">Effacer mes données</button></div><input id="import-file" type="file" accept="application/json,.json" style="display:none"><div class="hint">Sauvegarde conseillée : exporte de temps en temps un fichier JSON. Nous pourrons ensuite installer un stockage plus durable, par exemple dans Google Sheets.</div></div></details>`}
 function renderModal(){const root=$('#modal-root');if(!editing){root.innerHTML='';return}const p=product(editing);if(!p){editing=null;root.innerHTML='';return}root.innerHTML=`<div class="modal-backdrop" data-action="close-modal-backdrop"><div class="modal" role="dialog" aria-modal="true" aria-label="Modifier un produit"><h2>Modifier : ${safe(p.name)}</h2><form id="edit-form"><label class="field" for="edit-category">Rayon</label><select class="field-input" id="edit-category" name="category">${CATEGORIES.map(c=>`<option value="${safe(c)}" ${c===p.category?'selected':''}>${safe(c)}</option>`).join('')}</select><div style="margin-top:17px"><label class="field">Magasins habituels (0, 1 ou plusieurs)</label><div class="store-grid">${STORES.map(s=>`<label class="store-check"><input type="checkbox" name="store" value="${safe(s)}" ${p.stores.includes(s)?'checked':''}>${safe(s)}</label>`).join('')}</div></div><label class="store-check"><input name="manual" type="checkbox" ${p.storeMode==='manual'?'checked':''}>Conserver ces magasins comme choix manuel (prioritaire sur l'apprentissage)</label><p class="micro">Si décoché, de nouveaux achats pourront compléter automatiquement cette liste de magasins.</p><div class="session-actions"><button type="submit" class="primary">Enregistrer</button><button type="button" class="secondary" data-action="close-modal">Annuler</button></div></form></div></div>`}
 function render(){renderNav();$('#main').innerHTML=tab==='list'?renderList():tab==='store'?renderStore():tab==='catalog'?renderCatalog():renderHistory();renderModal()}
-function startSession(){if(!state.list.length){notify('Ta liste est vide : ajoute un produit avant de commencer.');return}const selected=$('#store-select')?.value||previewStore;previewStore=selected;state.lastStore=selected;state.session={store:selected,checked:[],startedAt:new Date().toISOString()};save();render()}
-function finishSession(){const checked=state.session?.checked||[];if(!state.session)return;if(!checked.length&&!confirm('Aucun article coché. Terminer quand même la session ?'))return;const items=checked.map(id=>{const p=product(id);const i=state.list.find(it=>it.id===id);return p?{id,name:p.name,quantity:i?.quantity||''}:null}).filter(Boolean);for(const it of items){const p=product(it.id);if(p.storeMode!=='manual'&&!p.stores.includes(state.session.store))p.stores.push(state.session.store)}state.history.push({id:uid(),at:new Date().toISOString(),store:state.session.store,items});state.list=state.list.filter(it=>!checked.includes(it.id));state.session=null;save();tab='list';render();notify(`${items.length} achat${items.length>1?'s':''} enregistré${items.length>1?'s':''}. Les autres produits restent sur la liste.`)}
+function startSession(){const selected=$('#store-select')?.value||previewStore;previewStore=selected;state.lastStore=selected;state.session={store:selected,checked:[],extras:[],startedAt:new Date().toISOString()};basketOpen=false;save();render()}
+function addUnexpected(name,qty=''){
+  if(!state.session){notify('Commence une session avant d’ajouter un achat imprévu.');return false}
+  name=String(name||'').trim();qty=String(qty||'').trim();
+  if(!name||name.length>100||qty.length>80){notify('Vérifie le nom du produit et sa quantité.');return false}
+  const p=getOrCreate(name);
+  const s=state.session;
+  const planned=state.list.some(i=>i.id===p.id);
+  const extra=(s.extras||[]).some(i=>i.id===p.id);
+  if(!planned&&!extra)s.extras.push({id:p.id,quantity:qty,addedAt:new Date().toISOString()});
+  if(!s.checked.includes(p.id))s.checked.push(p.id);
+  basketOpen=true;
+  save();notify(planned?`${p.name} coché dans ta liste.`:extra?`${p.name} déjà dans ton panier.`:`${p.name} ajouté comme achat imprévu.`);
+  return true;
+}
+function finishSession(){
+  if(!state.session)return;
+  const s=state.session;
+  const checked=s.checked||[];
+  if(!checked.length&&!confirm('Aucun article coché. Terminer quand même la session ?'))return;
+  const all=[...state.list,...(s.extras||[])];
+  const items=checked.map(id=>{
+    const p=product(id), i=all.find(it=>it.id===id);
+    return p&&i?{id,name:p.name,quantity:i.quantity||'',unexpected:(s.extras||[]).some(x=>x.id===id)}:null;
+  }).filter(Boolean);
+  for(const it of items){const p=product(it.id);if(p&&p.storeMode!=='manual'&&!p.stores.includes(s.store))p.stores.push(s.store)}
+  state.history.push({id:uid(),at:new Date().toISOString(),store:s.store,items});
+  state.list=state.list.filter(it=>!checked.includes(it.id));
+  state.session=null;basketOpen=false;
+  save();tab='list';render();
+  const n=items.filter(x=>x.unexpected).length;
+  notify(`${items.length} achat${items.length>1?'s':''} enregistré${items.length>1?'s':''}${n?' dont '+n+' imprévu'+(n>1?'s':''):''}.`);
+}
 function downloadData(){const data=JSON.stringify({...state,exportedAt:new Date().toISOString()},null,2);const blob=new Blob([data],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='mes-courses-sauvegarde-'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000);notify('Fichier de sauvegarde créé.')}
 async function importData(file){if(!file)return;try{const raw=await file.text();const loaded=JSON.parse(raw);if(!Array.isArray(loaded.products)||!Array.isArray(loaded.list)||!Array.isArray(loaded.history)||loaded.products.length>10000)throw Error('structure');if(!confirm('Remplacer toutes les données actuelles par cette sauvegarde ?'))return;state=migrateCategories({...emptyState(),...loaded,session:null});catalogSort=state.catalogSort||'count';previewStore=STORES.includes(state.lastStore)?state.lastStore:STORES[0];save();tab='list';render();notify('Sauvegarde importée.')}catch(e){notify('Impossible de lire ce fichier de sauvegarde.')}}
-document.addEventListener('submit',e=>{if(e.target.id==='add-form'){e.preventDefault();const name=$('#product-name').value;const qty=$('#quantity').value;if(addItem(name,qty)){render();$('#product-name')?.focus()}}if(e.target.id==='edit-form'){e.preventDefault();const p=product(editing);if(!p)return;const form=e.target;p.category=form.elements.category.value;p.stores=Array.from(form.querySelectorAll('input[name="store"]:checked')).map(x=>x.value);p.storeMode=form.elements.manual.checked?'manual':'auto';save();editing=null;render();notify('Produit mis à jour.')}});
-document.addEventListener('click',e=>{const b=e.target.closest('[data-action]');if(!b)return;const action=b.dataset.action;const id=b.dataset.id;if(action==='close-modal-backdrop'&&e.target!==b)return;if(action==='tab'){tab=b.dataset.tab;render();window.scrollTo(0,0)}else if(action==='remove'){const p=product(id);removeItem(id);render();notify((p?.name||'Produit')+' retiré de la liste.')}else if(action==='quickadd'){const p=product(id);if(p){addItem(p.name);render()}}else if(action==='favorite'){const p=product(id);if(p){p.favorite=!p.favorite;save();render()}}else if(action==='edit'){editing=id;renderModal()}else if(action==='close-modal'||action==='close-modal-backdrop'){editing=null;renderModal()}else if(action==='dismiss'){state.dismissed[id]=new Date().toISOString();save();render()}else if(action==='start')startSession();else if(action==='finish')finishSession();else if(action==='cancel'){if(confirm('Annuler la session ? Les articles cochés ne seront pas enregistrés.')){state.session=null;save();render()}}else if(action==='export')downloadData();else if(action==='import')$('#import-file')?.click();else if(action==='reset'){if(confirm('EFFACER toutes les listes, habitudes et l’historique de ce navigateur ? Cette action est irréversible sans sauvegarde.')){state=emptyState();save();tab='list';render();notify('Données réinitialisées.')}}});
+document.addEventListener('submit',e=>{if(e.target.id==='add-form'){e.preventDefault();const name=$('#product-name').value;const qty=$('#quantity').value;if(addItem(name,qty)){render();$('#product-name')?.focus()}}if(e.target.id==='unexpected-form'){e.preventDefault();const name=e.target.elements.name.value;const qty=e.target.elements.quantity.value;if(addUnexpected(name,qty)){render()}}if(e.target.id==='edit-form'){e.preventDefault();const p=product(editing);if(!p)return;const form=e.target;p.category=form.elements.category.value;p.categoryMode='manual';p.stores=Array.from(form.querySelectorAll('input[name="store"]:checked')).map(x=>x.value);p.storeMode=form.elements.manual.checked?'manual':'auto';save();editing=null;render();notify('Produit mis à jour.')}});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-action]');if(!b)return;const action=b.dataset.action;const id=b.dataset.id;if(action==='close-modal-backdrop'&&e.target!==b)return;if(action==='tab'){tab=b.dataset.tab;render();window.scrollTo(0,0)}else if(action==='remove'){const p=product(id);removeItem(id);render();notify((p?.name||'Produit')+' retiré de la liste.')}else if(action==='quickadd'){const p=product(id);if(p){addItem(p.name);render()}}else if(action==='favorite'){const p=product(id);if(p){p.favorite=!p.favorite;save();render()}}else if(action==='edit'){editing=id;renderModal()}else if(action==='close-modal'||action==='close-modal-backdrop'){editing=null;renderModal()}else if(action==='dismiss'){state.dismissed[id]=new Date().toISOString();save();render()}else if(action==='start')startSession();else if(action==='finish')finishSession();else if(action==='cancel'){if(confirm('Annuler la session ? Les articles cochés ne seront pas enregistrés.')){state.session=null;basketOpen=false;save();render()}}else if(action==='export')downloadData();else if(action==='import')$('#import-file')?.click();else if(action==='reset'){if(confirm('EFFACER toutes les listes, habitudes et l’historique de ce navigateur ? Cette action est irréversible sans sauvegarde.')){state=emptyState();save();tab='list';render();notify('Données réinitialisées.')}}});
+document.addEventListener('click',e=>{if(e.target.closest('#basket-details > summary'))basketOpen=!basketOpen});
 document.addEventListener('change',e=>{if(e.target.dataset.action==='check'){const id=e.target.dataset.id;const arr=state.session?.checked;if(!arr)return;if(e.target.checked&&!arr.includes(id))arr.push(id);if(!e.target.checked)state.session.checked=arr.filter(x=>x!==id);save();render()}if(e.target.id==='import-file'){importData(e.target.files?.[0]);e.target.value=''}if(e.target.id==='catalog-sort'){catalogSort=e.target.value;state.catalogSort=catalogSort;save();$('#catalog-results').innerHTML=catalogRows(catalogItems())}if(e.target.id==='store-select'){previewStore=e.target.value;state.lastStore=previewStore;save();render()}});
 document.addEventListener('input',e=>{if(e.target.id==='catalog-search'){catalogFilter=e.target.value;$('#catalog-results').innerHTML=catalogRows(catalogItems())}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&editing){editing=null;renderModal()}});
